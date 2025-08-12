@@ -1,9 +1,7 @@
 # Viem Support
 
-The TACo SDK provides unified `encrypt` and `decrypt` functions that work
-seamlessly with both [ethers.js](https://docs.ethers.org/) and
-[viem](https://viem.sh) through TypeScript function overloads. The same function
-names automatically detect which library you're using based on parameter types.
+The TACo SDK supports [viem](https://viem.sh) for encryption and decryption
+operations.
 
 ## Installation
 
@@ -15,36 +13,24 @@ npm install viem
 
 ### For Authentication Providers
 
-If you need authentication providers that work with viem, install the taco-auth
-package:
+If you need viem-compatible authentication providers (like
+`ViemEIP4361AuthProvider`), install the taco-auth package:
 
 ```bash
 npm install @nucypher/taco-auth viem
 ```
 
-## Supported Libraries
-
-The same `encrypt` and `decrypt` functions work with both ethers.js and viem.
-
-Here is how to use them with viem:
+## Sample Usage
 
 ```typescript
-import {
-  encrypt,
-  decrypt,
-  conditions,
-  domains,
-  initialize,
-} from '@nucypher/taco';
 import { createPublicClient, http } from 'viem';
 import { polygonAmoy } from 'viem/chains';
 import { privateKeyToAccount } from 'viem/accounts';
+import { encryptWithViem, decryptWithViem } from '@nucypher/taco';
+import * as conditions from '@nucypher/taco/conditions';
 
-// Initialize TACo
-await initialize();
-
-// Create viem public client
-const publicClient = createPublicClient({
+// Create viem client
+const viemPublicClient = createPublicClient({
   chain: polygonAmoy,
   transport: http(),
 });
@@ -52,9 +38,11 @@ const publicClient = createPublicClient({
 const viemAccount = privateKeyToAccount('0x...');
 
 // Create access condition
-const condition = new conditions.predefined.erc20.ERC20Balance({
+const condition = conditions.predefined.erc20Balance({
   contractAddress: '0x...',
+  standardContractType: 'ERC20',
   chain: 80002,
+  method: 'balanceOf',
   parameters: [':userAddress'],
   returnValueTest: {
     comparator: '>',
@@ -62,40 +50,67 @@ const condition = new conditions.predefined.erc20.ERC20Balance({
   },
 });
 
-// Same function names work with viem - TypeScript automatically detects the right overload
-const encryptedKit = await encrypt(
-  publicClient, // viem PublicClient
-  domains.DEVNET, // or 'lynx'
+// Encrypt a message
+const encryptedKit = await encryptWithViem(
+  viemPublicClient,
+  'lynx',
   'Hello, secret!',
   condition,
   27, // ritual ID
-  viemAccount, // viem Signer Account (`LocalAccount` or `WalletClient`)
+  viemAccount,
 );
 
-// Same decrypt function works with viem
-const decryptedMessage = await decrypt(
-  publicClient,
-  domains.DEVNET,
+// Decrypt the message
+const decryptedMessage = await decryptWithViem(
+  viemPublicClient,
+  'lynx',
   encryptedKit,
 );
 
 console.log(new TextDecoder().decode(decryptedMessage)); // "Hello, secret!"
 ```
 
-## Authentication Providers
+### Viem-Compatible Functions
+
+#### `encryptWithViem(viemPublicClient, domain, message, condition, ritualId, viemAccount)`
+
+Encrypts a message using viem objects.
+
+- `viemPublicClient`: `PublicClient` - Viem PublicClient for network operations
+- `domain`: `Domain` - TACo domain ('lynx', 'TESTNET', 'MAINNET')
+- `message`: `Uint8Array | string` - Message to encrypt
+- `condition`: `Condition` - Access condition for decryption
+- `ritualId`: `number` - DKG ritual ID
+- `viemAccount`: `Account` - Viem account for signing
+
+Returns: `Promise<ThresholdMessageKit>`
+
+#### `decryptWithViem(viemPublicClient, domain, messageKit, context?, porterUris?)`
+
+Decrypts a message using viem objects.
+
+- `viemPublicClient`: `PublicClient` - Viem PublicClient for network operations
+- `domain`: `Domain` - TACo domain
+- `messageKit`: `ThresholdMessageKit` - Encrypted message kit
+- `context?`: `ConditionContext` - Optional context for conditions
+- `porterUris?`: `string[]` - Optional Porter service URIs
+
+Returns: `Promise<Uint8Array>`
+
+## Viem Authentication Providers
 
 For applications that need authentication providers compatible with viem, use
 the `@nucypher/taco-auth` package:
 
-### EIP4361AuthProvider
+### ViemEIP4361AuthProvider
 
-`EIP4361AuthProvider` also supports both ethers.js and viem:
+Creates an EIP-4361 compliant authentication provider from viem objects:
 
 ```typescript
-import { createPublicClient, http } from 'viem';
+import { createPublicClient, createWalletClient, http } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { polygonAmoy } from 'viem/chains';
-import { EIP4361AuthProvider } from '@nucypher/taco-auth';
+import { ViemEIP4361AuthProvider } from '@nucypher/taco-auth';
 
 const publicClient = createPublicClient({
   chain: polygonAmoy,
@@ -103,8 +118,7 @@ const publicClient = createPublicClient({
 });
 const account = privateKeyToAccount('0x...');
 
-// Viem usage
-const authProvider = new EIP4361AuthProvider(publicClient, account, {
+const authProvider = new ViemEIP4361AuthProvider(publicClient, account, {
   domain: 'my-app.com',
   uri: 'https://my-app.com',
 });
@@ -112,22 +126,35 @@ const authProvider = new EIP4361AuthProvider(publicClient, account, {
 const authSignature = await authProvider.getOrCreateAuthSignature();
 ```
 
-**Ethers.js Usage (for comparison):**
+**Parameters:**
 
-```typescript
-import { ethers } from 'ethers';
-import { EIP4361AuthProvider } from '@nucypher/taco-auth';
+- `viemPublicClient`: `PublicClient` - Viem public client for network operations
+- `viemAccount`: `Account` - Viem account for signing
+- `options?`: `EIP4361AuthProviderParams` - Optional domain and URI for EIP-4361
+  messages
 
-const provider = new ethers.providers.JsonRpcProvider();
-const signer = new ethers.Wallet('0x...', provider);
+**Methods:**
 
-// Ethers usage
-const authProvider = new EIP4361AuthProvider(provider, signer);
-```
+- `getOrCreateAuthSignature()`: Returns authentication signature for TACo
+  operations
+- `ethersProvider`: Getter for underlying ethers-compatible auth provider
 
-## Installation
+## Package Architecture
 
-Use the appropriate package based on your needs:
+### @nucypher/taco
+
+- **Purpose**: Core encryption and decryption functionality
+- **Viem Functions**: `encryptWithViem()`, `decryptWithViem()`
+- **Dependencies**: Only viem functions for encryption operations
+
+### @nucypher/taco-auth
+
+- **Purpose**: Authentication providers and signing utilities
+- **Viem Functions**: `ViemEIP4361AuthProvider`
+- **Dependencies**: Viem authentication and EIP-4361 signing
+
+This separation follows clean architecture principles - use the appropriate
+package based on your needs:
 
 - **Encryption only**: Install `@nucypher/taco` + `viem`
 - **Authentication required**: Install both `@nucypher/taco` +
