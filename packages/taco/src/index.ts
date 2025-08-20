@@ -11,7 +11,22 @@ export {
 
 export * as conditions from './conditions';
 
-export { decrypt, encrypt, encryptWithPublicKey } from './taco';
+export { decrypt, encrypt } from './encrypt-decrypt';
+export { encryptWithPublicKey } from './taco';
 
-// Viem-compatible functions
-export { decryptWithViem, encryptWithViem } from './viem-taco';
+// Object-Oriented Interface
+export {
+  TacoClient,
+  type TacoClientConfig,
+  type TacoClientEthersConfig,
+  type TacoClientViemConfig,
+} from './taco-client';
+
+export {
+  TACO_DOMAINS,
+  TacoConfig,
+  TacoDomains,
+  type DomainName,
+} from './domains';
+
+export { LogLevel, Logger } from './utils/logger';

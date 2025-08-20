@@ -139,6 +139,138 @@ const viemEncrypted = await encrypt(
 
 For detailed viem documentation, see [VIEM_SUPPORT.md](./VIEM_SUPPORT.md).
 
+## TacoClient - Object-Oriented Interface
+
+For applications requiring multiple TACo operations or complex configuration management, the TACo SDK provides an optional object-oriented interface through the `TacoClient` class. This provides a stateful, higher-level abstraction over the functional API.
+
+### Benefits
+
+- **Reduced Boilerplate**: No need to repeatedly pass configuration parameters
+- **Built-in Validation**: Automatic configuration validation and correction
+- **Better IntelliSense**: IDE autocompletion and type safety
+- **Simplified Error Handling**: Contextual errors with specific recommendations
+- **Stateful Configuration**: Store domain, ritual ID, and client configurations at instance level
+
+### Basic Usage
+
+```typescript
+import { TacoClient, TacoDomains } from '@nucypher/taco';
+import { createPublicClient, http } from 'viem';
+import { privateKeyToAccount } from 'viem/accounts';
+import { polygonAmoy } from 'viem/chains';
+
+// Initialize TACo
+await initialize();
+
+// Set up viem client and account
+const viemClient = createPublicClient({
+  chain: polygonAmoy,
+  transport: http(),
+});
+const viemAccount = privateKeyToAccount('0x...');
+
+// Create TacoClient instance using domain constants
+const tacoClient = new TacoClient({
+  domain: TacoDomains.TESTNET, // 'tapir' - use TacoDomains.DEVNET or TacoDomains.MAINNET
+  ritualId: 6,
+  viemClient,
+  viemAccount
+});
+
+// Encrypt data
+const messageKit = await tacoClient.encrypt('Hello, secret!', condition);
+
+// Decrypt with automatic context creation
+const decryptedMessage = await tacoClient.decryptWithAutoContext(messageKit);
+```
+
+### Logger Configuration
+
+You can configure custom logging for better debugging and monitoring:
+
+```typescript
+import { TacoClient, TacoDomains, Logger, LogLevel } from '@nucypher/taco';
+
+// Create custom logger instance
+const customLogger = new Logger({
+  level: LogLevel.DEBUG,
+  component: 'MyApp',
+});
+
+// Use custom logger in TacoClient
+const tacoClient = new TacoClient({
+  domain: TacoDomains.TESTNET,
+  ritualId: 6,
+  viemClient,
+  viemAccount,
+  logger: customLogger, // Custom logger instance. You can create and provide yours.
+});
+
+// Or set log level directly (creates new Logger internally)
+const tacoClientWithLogLevel = new TacoClient({
+  domain: TacoDomains.TESTNET,
+  ritualId: 6,
+  viemClient,
+  viemAccount,
+  logLevel: LogLevel.WARN, // Set log level directly (creates new Logger internally that will print to console)
+});
+```
+
+### Configuration Management
+
+The `TacoConfig` class provides unified configuration management with automatic validation and correction:
+
+```typescript
+import { TacoConfig } from '@nucypher/taco';
+
+// Auto-correct and validate configuration
+const config = TacoConfig.process({ domain: 'testnet' }); // → will use 'tapir' with ritual 6
+const tacoClient = new TacoClient({ 
+  ...config, 
+  viemClient, 
+  viemAccount 
+});
+
+// Get domain information
+const domainInfo = tacoClient.getDomainInfo();
+// Returns: { domain, alias, chainId, rituals, suggestedRpcUrls, isProduction }
+
+// Check supported domains
+const supportedDomains = TacoConfig.getSupportedDomains(); // ['lynx', 'tapir', 'mainnet']
+```
+
+### Dual Configuration Support
+
+TacoClient supports both viem and ethers.js configurations:
+
+```typescript
+import { TacoClient, TacoDomains } from '@nucypher/taco';
+
+// With viem (recommended)
+const tacoClientViem = new TacoClient({
+  domain: TacoDomains.TESTNET,
+  ritualId: 6,
+  viemClient,
+  viemAccount
+});
+
+// With ethers.js
+const tacoClientEthers = new TacoClient({
+  domain: TacoDomains.TESTNET,
+  ritualId: 6,
+  ethersProvider,
+  ethersSigner
+});
+```
+
+### Backward Compatibility
+
+The TacoClient provides a higher-level interface while maintaining full backward compatibility:
+
+- **Zero Breaking Changes**: Existing functional API remains unchanged
+- **Optional Import**: OOP classes available as optional imports
+- **Interoperable**: Can use both APIs in the same application, if needed.
+
 ## Learn more
 
 Please find developer documentation for
