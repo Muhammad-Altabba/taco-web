@@ -143,18 +143,24 @@ For detailed viem documentation, see [VIEM_SUPPORT.md](./VIEM_SUPPORT.md).
 
 For applications requiring multiple TACo operations or complex configuration management, the TACo SDK provides an optional object-oriented interface through the `TacoClient` class. This provides a stateful, higher-level abstraction over the functional API.
 
-### Benefits
+### What is different from the functional API?
 
-- **Reduced Boilerplate**: No need to repeatedly pass configuration parameters
-- **Built-in Validation**: Automatic configuration validation and correction
-- **Better IntelliSense**: IDE autocompletion and type safety
-- **Simplified Error Handling**: Contextual errors with specific recommendations
-- **Stateful Configuration**: Store domain, ritual ID, and client configurations at instance level
+- **Stateful Configuration**: Store domain, ritual ID, and other client configurations at instance level so there is less need to repeatedly pass some config parameters.
+- **Enhanced Validation**: Enhanced configuration validation and correction.
+- **Enhanced Type Safety**: More type strict for the domain name.
+
+The Object-Oriented API is fully backward compatible - you can use both APIs in
+the same application as needed. Except that the TacoClient has more validations
+and hence throws some errors earlier with different error messages.
+
+NOTE: Using TacoClient is basically similar to using the functional API. And there is no
+specific recommendations on what to use. It is for the convenience of the
+developer to choose.
 
 ### Basic Usage
 
 ```typescript
-import { TacoClient, TacoDomains } from '@nucypher/taco';
+import { TacoClient, ConditionContext, DOMAIN_NAMES } from '@nucypher/taco';
 import { createPublicClient, http } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { polygonAmoy } from 'viem/chains';
@@ -169,9 +175,9 @@ const viemClient = createPublicClient({
 });
 const viemAccount = privateKeyToAccount('0x...');
 
-// Create TacoClient instance using domain constants
+// Create TacoClient instance with domain constants
 const tacoClient = new TacoClient({
-  domain: TacoDomains.TESTNET, // 'tapir' - use TacoDomains.DEVNET or TacoDomains.MAINNET
+  domain: DOMAIN_NAMES.TESTNET, // TacoDomains.TESTNET -> 'tapir'
   ritualId: 6,
   viemClient,
   viemAccount
@@ -180,63 +186,12 @@ const tacoClient = new TacoClient({
 // Encrypt data
 const messageKit = await tacoClient.encrypt('Hello, secret!', condition);
 
-// Decrypt with automatic context creation
-const decryptedMessage = await tacoClient.decryptWithAutoContext(messageKit);
-```
+// Decrypt
+const conditionContext = ConditionContext.fromMessageKit(messageKit);
 
-### Logger Configuration
+// if needed Add authentication for ":userAddress" in condition...
 
-You can configure custom logging for better debugging and monitoring:
-
-```typescript
-import { TacoClient, TacoDomains, Logger, LogLevel } from '@nucypher/taco';
-
-// Create custom logger instance
-const customLogger = new Logger({
-  level: LogLevel.DEBUG,
-  component: 'MyApp',
-});
-
-// Use custom logger in TacoClient
-const tacoClient = new TacoClient({
-  domain: TacoDomains.TESTNET,
-  ritualId: 6,
-  viemClient,
-  viemAccount,
-  logger: customLogger, // Custom logger instance. You can create and provide yours.
-});
-
-// Or set log level directly (creates new Logger internally)
-const tacoClientWithLogLevel = new TacoClient({
-  domain: TacoDomains.TESTNET,
-  ritualId: 6,
-  viemClient,
-  viemAccount,
-  logLevel: LogLevel.WARN, // Set log level directly (creates new Logger internally that will print to console)
-});
-```
-
-### Configuration Management
-
-The `TacoConfig` class provides unified configuration management with automatic validation and correction:
-
-```typescript
-import { TacoConfig } from '@nucypher/taco';
-
-// Auto-correct and validate configuration
-const config = TacoConfig.process({ domain: 'testnet' }); // → will use 'tapir' with ritual 6
-const tacoClient = new TacoClient({ 
-  ...config, 
-  viemClient, 
-  viemAccount 
-});
-
-// Get domain information
-const domainInfo = tacoClient.getDomainInfo();
-// Returns: { domain, alias, chainId, rituals, suggestedRpcUrls, isProduction }
-
-// Check supported domains
-const supportedDomains = TacoConfig.getSupportedDomains(); // ['lynx', 'tapir', 'mainnet']
+const decryptedMessage = await tacoClient.decrypt(messageKit, conditionContext);
 ```
 
 ### Dual Configuration Support
@@ -244,7 +199,7 @@ const supportedDomains = TacoConfig.getSupportedDomains(); // ['lynx', 'tapir', 
 TacoClient supports both viem and ethers.js configurations:
 
 ```typescript
-import { TacoClient, TacoDomains } from '@nucypher/taco';
+import { TacoClient, DOMAIN_NAMES } from '@nucypher/taco';
 
 // With viem (recommended)
 const tacoClientViem = new TacoClient({

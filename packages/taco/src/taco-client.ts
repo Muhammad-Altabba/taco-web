@@ -7,74 +7,19 @@
  */
 
 import { ThresholdMessageKit } from '@nucypher/nucypher-core';
-import { type Account, type PublicClient } from '@nucypher/shared';
-import type { ethers } from 'ethers';
 
+import {
+  isEthersConfig,
+  isViemConfig,
+  type TacoClientConfig,
+} from './client-config';
 import { Condition } from './conditions/condition';
 import { ConditionContext } from './conditions/context';
-import { type DomainName, TacoConfig, ValidationResult } from './domains';
-import { decrypt as ethersDecrypt, encrypt as ethersEncrypt } from './taco';
-import { Logger, LogLevel } from './utils/logger';
-import { decryptWithViem, encryptWithViem } from './viem-taco';
-
-/**
- * Base configuration for TacoClient
- */
-export interface TacoClientBaseConfig {
-  /** TACo domain name (e.g., 'lynx', 'tapir', 'mainnet') */
-  domain: DomainName;
-  /** Ritual ID for the TACo operations */
-  ritualId: number;
-  /** Optional Porter URIs */
-  porterUris?: string[];
-  /** Optional Logger instance. If not provided, a new Logger will be created. */
-  logger?: Logger;
-  /** Optional logger configuration (ignored if logger is provided) */
-  logLevel?: LogLevel;
-}
-
-/**
- * Viem configuration for TacoClient
- */
-export interface TacoClientViemConfig extends TacoClientBaseConfig {
-  /** Viem PublicClient for blockchain operations */
-  viemClient: PublicClient;
-  /** Viem Account for signing operations */
-  viemAccount: Account;
-}
-
-/**
- * Ethers configuration for TacoClient
- */
-export interface TacoClientEthersConfig extends TacoClientBaseConfig {
-  /** Ethers Provider for blockchain operations */
-  ethersProvider: ethers.providers.Provider;
-  /** Ethers Signer for signing operations */
-  ethersSigner: ethers.Signer;
-}
-
-/**
- * Union type for TacoClient configuration - supports both viem and ethers.js
- */
-export type TacoClientConfig = TacoClientViemConfig | TacoClientEthersConfig;
-
-/**
- * Type guard to check if config is viem-based
- */
-function isViemConfig(
-  config: TacoClientConfig,
-): config is TacoClientViemConfig {
-  return 'viemClient' in config && 'viemAccount' in config;
-}
-
-/**
- * Type guard to check if config is ethers-based
- */
-function isEthersConfig(
-  config: TacoClientConfig,
-): config is TacoClientEthersConfig {
-  return 'ethersProvider' in config && 'ethersSigner' in config;
-}
+import { decrypt, encrypt } from './encrypt-decrypt';
+import {
+  TacoConfigValidator,
+  type ValidationResult,
+} from './taco-config-validator';
 
 /**
  * TacoClient provides an object-oriented interface for TACo operations
@@ -114,7 +59,8 @@ function isEthersConfig(
  *
  * // Simple encryption/decryption
  * const messageKit = await tacoClient.encrypt('Hello, secret!', condition);
- * const decrypted = await tacoClient.decryptWithAutoContext(messageKit);
+ * const context = await tacoClient.createConditionContext(messageKit);
+ * const decrypted = await tacoClient.decrypt(messageKit, context);
  * ```
  *
  * @example Using with ethers.js:
@@ -141,105 +87,62 @@ function isEthersConfig(
  *
  * // Simple encryption/decryption
  * const messageKit = await tacoClient.encrypt('Hello, secret!', condition);
- * const decrypted = await tacoClient.decryptWithAutoContext(messageKit);
+ * const context = await tacoClient.createConditionContext(messageKit);
+ * const decrypted = await tacoClient.decrypt(messageKit, context);
  * ```
  */
 export class TacoClient {
   private config: TacoClientConfig;
-  private logger: Logger;
-  private domain: DomainName;
 
   /**
    * Create a new TacoClient instance
    *
-   * @param config - TacoClient configuration
+   * @param config - Configuration for the TacoClient
    * @throws {Error} If configuration is invalid
    */
   constructor(config: TacoClientConfig) {
-    // Use provided logger or create a new one
-    this.logger =
-      config.logger ||
-      new Logger({
-        level: config.logLevel || LogLevel.INFO,
-        component: 'TacoClient',
-      });
-
-    // Validate and process the configuration
-    const processedConfig = TacoClient.validateConfig(config);
-    if (!processedConfig.isValid) {
-      throw new Error(
-        `TacoClient Configuration Error: ${processedConfig.errors.join(', ')}`,
-      );
+    // Validate configuration using TacoConfig
+    const result = TacoConfigValidator.validateFast(config);
+    if (!result.isValid) {
+      throw new Error(`Invalid configuration: ${result.errors.join(', ')}`);
     }
 
     this.config = config;
-    this.domain = this.getDomainFromConfig(config.domain);
 
-    this.logger.debug(`TacoClient initialized`, {
+    console.debug(`TacoClient initialized`, {
       domain: this.config.domain,
       ritualId: this.config.ritualId,
     });
   }
 
   /**
-   * Validate TacoClient configuration
+   * Fully validate the configuration including network provider checks
    *
-   * @param config - Configuration to validate
-   * @returns {ValidationResult} Validation result
+   * This method performs comprehensive validation including:
+   * - Domain and ritual ID validation
+   * - Provider/signer configuration validation
+   * - Network compatibility check (calls provider to verify chain ID matches domain)
+   *
+   * @returns {Promise<ValidationResult>} Promise resolving to validation result with isValid boolean and errors array
+   *
+   * @example
+   * ```typescript
+   * const result = await tacoClient.validateConfig();
+   * if (!result.isValid) {
+   *   console.error('Configuration errors:', result.errors);
+   * }
+   * ```
    */
-  static validateConfig(config: TacoClientConfig): ValidationResult {
-    const errors: string[] = [];
-
-    // Validate TACo domain configuration
-    const tacoValidation = TacoConfig.validate({
-      domain: config.domain,
-      ritualId: config.ritualId,
-    });
-
-    if (!tacoValidation.isValid) {
-      errors.push(...tacoValidation.errors);
-    }
-
-    // Validate required blockchain objects
-    if (isViemConfig(config)) {
-      // Validate viem objects
-      if (!config.viemClient) {
-        errors.push('viemClient is required for viem configuration');
-      }
-      if (!config.viemAccount) {
-        errors.push('viemAccount is required for viem configuration');
-      }
-    } else if (isEthersConfig(config)) {
-      // Validate ethers objects
-      if (!config.ethersProvider) {
-        errors.push('ethersProvider is required for ethers configuration');
-      }
-      if (!config.ethersSigner) {
-        errors.push('ethersSigner is required for ethers configuration');
-      }
-    } else {
-      errors.push(
-        'Configuration must include either viem objects (viemClient + viemAccount) or ethers objects (ethersProvider + ethersSigner)',
+  async validateConfig(): Promise<ValidationResult> {
+    const validationResult = await TacoConfigValidator.validateFull(
+      this.config,
+    );
+    if (!validationResult.isValid) {
+      throw new Error(
+        `Invalid configuration: ${validationResult.errors.join(', ')}`,
       );
     }
-
-    return {
-      isValid: errors.length === 0,
-      errors,
-      config: errors.length === 0 ? config : undefined,
-    };
-  }
-
-  /**
-   * Get the domain object for porter operations
-   *
-   * @param domainName - TACo domain name (e.g., 'lynx', 'tapir', 'mainnet')
-   * @returns {DomainName} Porter domain
-   */
-  private getDomainFromConfig(domainName: string): DomainName {
-    // DomainName validity is ensured by prior validation in the constructor
-    // The domain name is already the actual TACo domain string
-    return domainName as DomainName;
+    return validationResult;
   }
 
   /**
@@ -258,7 +161,7 @@ export class TacoClient {
     data: string | Uint8Array,
     accessCondition: Condition,
   ): Promise<ThresholdMessageKit> {
-    this.logger.debug('Starting encryption', {
+    console.debug('Starting encryption', {
       domain: this.config.domain,
       ritualId: this.config.ritualId,
       dataType: typeof data,
@@ -270,9 +173,9 @@ export class TacoClient {
 
       if (isViemConfig(this.config)) {
         // Use viem API
-        messageKit = await encryptWithViem(
+        messageKit = await encrypt(
           this.config.viemClient,
-          this.domain,
+          this.config.domain,
           data,
           accessCondition,
           this.config.ritualId,
@@ -280,9 +183,9 @@ export class TacoClient {
         );
       } else if (isEthersConfig(this.config)) {
         // Use ethers API
-        messageKit = await ethersEncrypt(
+        messageKit = await encrypt(
           this.config.ethersProvider,
-          this.domain,
+          this.config.domain,
           data,
           accessCondition,
           this.config.ritualId,
@@ -294,10 +197,9 @@ export class TacoClient {
         );
       }
 
-      this.logger.info('Encryption successful');
+      console.info('Encryption successful');
       return messageKit;
     } catch (error) {
-      this.logger.error('Encryption failed', error);
       throw new Error(`TaCo encryption failed: ${error}`);
     }
   }
@@ -318,7 +220,7 @@ export class TacoClient {
     messageKit: ThresholdMessageKit,
     conditionContext?: ConditionContext,
   ): Promise<Uint8Array> {
-    this.logger.debug('Starting decryption', {
+    console.debug('Starting decryption', {
       domain: this.config.domain,
       hasContext: !!conditionContext,
     });
@@ -328,18 +230,18 @@ export class TacoClient {
 
       if (isViemConfig(this.config)) {
         // Use viem API
-        decrypted = await decryptWithViem(
+        decrypted = await decrypt(
           this.config.viemClient,
-          this.domain,
+          this.config.domain,
           messageKit,
           conditionContext,
           this.config.porterUris,
         );
       } else if (isEthersConfig(this.config)) {
         // Use ethers API
-        decrypted = await ethersDecrypt(
+        decrypted = await decrypt(
           this.config.ethersProvider,
-          this.domain,
+          this.config.domain,
           messageKit,
           conditionContext,
           this.config.porterUris,
@@ -350,66 +252,11 @@ export class TacoClient {
         );
       }
 
-      this.logger.info('Decryption successful');
+      console.info('Decryption successful');
       return decrypted;
     } catch (error) {
-      this.logger.error('Decryption failed', error);
       throw new Error(`TaCo decryption failed: ${error}`);
     }
-  }
-
-  /**
-   * Decrypt a message kit with automatic condition context creation
-   *
-   * This is a convenience method that automatically creates the condition context
-   * for time-based conditions, making decryption simpler for common use cases.
-   *
-   * @param messageKit - Encrypted message kit
-   * @returns {Promise<Uint8Array>} Decrypted data
-   *
-   * @example
-   * ```typescript
-   * const decrypted = await tacoClient.decryptWithAutoContext(messageKit);
-   * ```
-   */
-  async decryptWithAutoContext(
-    messageKit: ThresholdMessageKit,
-  ): Promise<Uint8Array> {
-    this.logger.debug('Starting decryption with auto context');
-
-    try {
-      // For auto context, we create a condition context with current time
-      const conditionContext = await this.createConditionContext(messageKit);
-      return await this.decrypt(messageKit, conditionContext);
-    } catch (error) {
-      this.logger.error('Auto-context decryption failed', error);
-      throw new Error(`TaCo auto-context decryption failed: ${error}`);
-    }
-  }
-
-  /**
-   * Create a condition context for the given message kit
-   *
-   * @param messageKit - Message kit to create context for
-   * @param customViemAccount - Optional custom viem account (defaults to instance account)
-   * @returns {Promise<ConditionContext>} Condition context
-   *
-   * @example
-   * ```typescript
-   * const context = await tacoClient.createConditionContext(messageKit);
-   * const decrypted = await tacoClient.decrypt(messageKit, context);
-   * ```
-   */
-  async createConditionContext(
-    messageKit: ThresholdMessageKit,
-  ): Promise<ConditionContext> {
-    this.logger.debug('Creating condition context');
-
-    // Create condition context from the message kit's conditions
-    const conditionContext = ConditionContext.fromMessageKit(messageKit);
-
-    this.logger.debug('Condition context created successfully');
-    return conditionContext;
   }
 
   /**

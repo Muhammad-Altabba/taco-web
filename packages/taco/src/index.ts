@@ -14,19 +14,20 @@ export * as conditions from './conditions';
 export { decrypt, encrypt } from './encrypt-decrypt';
 export { encryptWithPublicKey } from './taco';
 
-// Object-Oriented Interface
+// TaCo Configuration and Client
 export {
-  TacoClient,
+  DOMAINS,
+  DOMAIN_NAMES,
+  type DomainName,
+  type ValidationResult,
+} from './taco-config-validator';
+
+// TacoConfigValidator is internal-only, not exported
+
+export { TacoClient } from './taco-client';
+
+export {
   type TacoClientConfig,
   type TacoClientEthersConfig,
   type TacoClientViemConfig,
-} from './taco-client';
-
-export {
-  TACO_DOMAINS,
-  TacoConfig,
-  TacoDomains,
-  type DomainName,
-} from './domains';
-
-export { LogLevel, Logger } from './utils/logger';
+} from './client-config';
