@@ -134,6 +134,19 @@ export class TacoConfigValidator {
   }
 
   /**
+   * Get expected chain ID for domain from DOMAINS configuration
+   * @param domain - Domain name to look up
+   * @returns {number | undefined} Chain ID for the domain, undefined if not found
+   * @private
+   */
+  private static getExpectedChainId(domain: string): number | undefined {
+    const domainEntry = Object.values(DOMAINS).find(
+      (domainConfig) => domainConfig.domain === domain,
+    );
+    return domainEntry?.chainId;
+  }
+
+  /**
    * Validate ritual ID (basic validation - positive number only)
    * @param domain - Domain name (unused but kept for API compatibility)
    * @param ritualId - Ritual ID to validate
@@ -245,11 +258,63 @@ export class TacoConfigValidator {
       );
     }
 
+    // Validate chain compatibility (synchronous check)
+    const chainValidation = this.validateChainCompatibility(config);
+    if (!chainValidation.isValid) {
+      errors.push(...chainValidation.errors);
+    }
+
     return { isValid: errors.length === 0, errors };
   }
 
   /**
-   * Full validation including provider network checks
+   * Synchronous chain compatibility validation
+   * @private
+   */
+  private static validateChainCompatibility(
+    config: TacoClientConfig,
+  ): ValidationResult {
+    const errors: string[] = [];
+
+    // Get expected chain ID for domain
+    const expectedChainId = this.getExpectedChainId(config.domain);
+    if (!expectedChainId) {
+      errors.push(`Unsupported domain: ${config.domain}`);
+      return { isValid: false, errors };
+    }
+
+    // Check viem client chain compatibility
+    if ('viemClient' in config && config.viemClient) {
+      const viemClient = config.viemClient as PublicClient;
+      if (viemClient.chain && viemClient.chain.id !== expectedChainId) {
+        errors.push(
+          `Provider chain mismatch: viem client chain ID ${viemClient.chain.id} does not match domain '${config.domain}' (expected ${expectedChainId})`,
+        );
+      }
+    }
+
+    // Check ethers provider chain compatibility
+    if ('ethersProvider' in config && config.ethersProvider) {
+      // Note: _network is not public API, but it's the only synchronous way to check
+      // However, if the property `_network` was not available, no error will be thrown.
+      const ethersProvider = config.ethersProvider as unknown as {
+        _network?: { chainId: number };
+      };
+      if (
+        ethersProvider._network &&
+        ethersProvider._network.chainId !== expectedChainId
+      ) {
+        errors.push(
+          `Provider chain mismatch: ethers provider chain ID ${ethersProvider._network.chainId} does not match domain '${config.domain}' (expected ${expectedChainId})`,
+        );
+      }
+    }
+
+    return { isValid: errors.length === 0, errors };
+  }
+
+  /**
+   * Full validation including async provider network checks
    * @param config - Configuration to validate
    * @returns {Promise<ValidationResult>} Validation result with provider validation
    */
