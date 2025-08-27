@@ -200,7 +200,7 @@ export class TacoClient {
       console.info('Encryption successful');
       return messageKit;
     } catch (error) {
-      throw new Error(`TaCo encryption failed: ${error}`);
+      throw new Error(`TACo encryption failed: ${error}`);
     }
   }
 
