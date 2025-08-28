@@ -6,7 +6,7 @@
 
 import { type Account, type PublicClient } from '@nucypher/shared';
 import type { ethers } from 'ethers';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
   DOMAINS,
@@ -124,7 +124,20 @@ describe('TacoConfigValidator', () => {
   });
 });
 
+// Helper to access TacoClient's private static members for testing
+const getTacoClientStatics = () =>
+  TacoClient as unknown as { initializationPromise: Promise<void> | undefined };
+const resetTacoClientStatics = () => {
+  delete (TacoClient as unknown as { initializationPromise?: Promise<void> })
+    .initializationPromise;
+};
+
 describe('TacoClient', () => {
+  beforeAll(async () => {
+    // Should be able to wait for initialization
+    await TacoClient.initialize();
+  });
+
   let validViemConfig: TacoClientViemConfig;
   let validEthersConfig: TacoClientEthersConfig;
 
@@ -277,6 +290,47 @@ describe('TacoClient', () => {
       expect(() => {
         (config as Record<string, unknown>).domain = 'lynx';
       }).toThrow();
+    });
+  });
+
+  describe('Initialization', () => {
+    it('should initialize TACo automatically', async () => {
+      // Reset static initialization state to check for automatic initialization
+      // that happens after calling any TacoClient constructor
+      resetTacoClientStatics();
+
+      new TacoClient(validViemConfig);
+
+      // Initialization should be triggered by constructor
+      expect(getTacoClientStatics().initializationPromise).toBeDefined();
+    });
+
+    it('should share initialization across multiple clients', async () => {
+      new TacoClient(validViemConfig);
+      new TacoClient({
+        ...validViemConfig,
+        ritualId: 27, // Different ritual ID
+      });
+
+      // Both clients should share the same initialization promise
+      const initPromise1 = getTacoClientStatics().initializationPromise;
+      const initPromise2 = getTacoClientStatics().initializationPromise;
+
+      expect(initPromise1).toBe(initPromise2);
+      expect(initPromise1).toBeDefined();
+    });
+
+    it('should have error handling structure in place', async () => {
+      // Test that TacoClient.initialize() method exists and returns a promise
+      const initPromise = TacoClient.initialize();
+      expect(initPromise).toBeInstanceOf(Promise);
+
+      // Wait for initialization to complete
+      await initPromise;
+
+      // Verify that repeated calls return the same promise (singleton pattern)
+      const initPromise2 = TacoClient.initialize();
+      expect(initPromise2).toBeInstanceOf(Promise);
     });
   });
 

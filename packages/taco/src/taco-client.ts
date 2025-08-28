@@ -6,42 +6,40 @@
  * class-based architectures.
  */
 
-import { ThresholdMessageKit } from '@nucypher/nucypher-core';
+import { initialize, ThresholdMessageKit } from '@nucypher/nucypher-core';
 
 import {
   isEthersConfig,
   isViemConfig,
   type TacoClientConfig,
-} from './client-config';
-import { Condition } from './conditions/condition';
-import { ConditionContext } from './conditions/context';
-import { decrypt, encrypt } from './encrypt-decrypt';
+} from './client-config.js';
+import { Condition } from './conditions/condition.js';
+import { ConditionContext } from './conditions/context/index.js';
+import { decrypt, encrypt } from './encrypt-decrypt.js';
 import {
   TacoConfigValidator,
   type ValidationResult,
-} from './taco-config-validator';
+} from './taco-config-validator.js';
 
 /**
  * TacoClient provides an object-oriented interface for TACo operations
  *
  * This class encapsulates TACo configuration and provides simplified methods
  * for encryption and decryption operations. It handles configuration validation,
- * auto-correction, and provides enhanced error messages.
+ * automatic WASM initialization, and provides enhanced error messages.
  *
- * Supports both viem and ethers.js for maximum flexibility.
+ * **Key Features:**
+ * - Automatic WASM initialization (singleton pattern)
+ * - Supports both viem and ethers.js
+ * - Configuration validation with helpful error messages
+ * - Thread-safe initialization across multiple instances
  *
  * @example Using with viem:
  * ```typescript
- * import { TacoClient, TacoConfig } from '@nucypher/taco';
+ * import { TacoClient, DOMAIN_NAMES } from '@nucypher/taco';
  * import { createPublicClient, http } from 'viem';
  * import { polygonAmoy } from 'viem/chains';
  * import { privateKeyToAccount } from 'viem/accounts';
- *
- * // Process and validate configuration
- * const processedConfig = TacoConfig.process({
- *   domain: 'testnet',  // Will be auto-corrected to 'TESTNET'
- *   // ritualId automatically set to default for TESTNET (6)
- * });
  *
  * // Create viem client and account
  * const viemClient = createPublicClient({
@@ -50,49 +48,81 @@ import {
  * });
  * const viemAccount = privateKeyToAccount('0x...');
  *
- * // Create TacoClient instance with viem
+ * // Create TacoClient - WASM initializes automatically
  * const tacoClient = new TacoClient({
- *   ...processedConfig,
+ *   domain: DOMAIN_NAMES.TESTNET, // 'tapir'
+ *   ritualId: 6,
  *   viemClient,
  *   viemAccount
  * });
  *
- * // Simple encryption/decryption
+ * // Operations wait for initialization automatically
  * const messageKit = await tacoClient.encrypt('Hello, secret!', condition);
- * const context = await tacoClient.createConditionContext(messageKit);
- * const decrypted = await tacoClient.decrypt(messageKit, context);
+ * const decrypted = await tacoClient.decrypt(messageKit, conditionContext);
  * ```
  *
  * @example Using with ethers.js:
  * ```typescript
- * import { TacoClient, TacoConfig } from '@nucypher/taco';
+ * import { TacoClient, DOMAIN_NAMES } from '@nucypher/taco';
  * import { ethers } from 'ethers';
- *
- * // Process and validate configuration
- * const processedConfig = TacoConfig.process({
- *   domain: 'testnet',
- *   ritualId: 6
- * });
  *
  * // Create ethers provider and signer
  * const ethersProvider = new ethers.providers.JsonRpcProvider('https://rpc-amoy.polygon.technology');
  * const ethersSigner = new ethers.Wallet('0x...', ethersProvider);
  *
- * // Create TacoClient instance with ethers
+ * // Create TacoClient - WASM initializes automatically
  * const tacoClient = new TacoClient({
- *   ...processedConfig,
+ *   domain: DOMAIN_NAMES.TESTNET,
+ *   ritualId: 6,
  *   ethersProvider,
  *   ethersSigner
  * });
  *
- * // Simple encryption/decryption
+ * // Operations are safe and wait for readiness
  * const messageKit = await tacoClient.encrypt('Hello, secret!', condition);
- * const context = await tacoClient.createConditionContext(messageKit);
- * const decrypted = await tacoClient.decrypt(messageKit, context);
+ * const decrypted = await tacoClient.decrypt(messageKit, conditionContext);
  * ```
  */
 export class TacoClient {
   private config: TacoClientConfig;
+  private static initializationPromise: Promise<void>;
+
+  /**
+   * Initialize TACo WASM globally (singleton pattern)
+   *
+   * This method ensures TACo WASM is initialized exactly once across all TacoClient instances.
+   * Initialization happens automatically when creating clients or calling operations, but you can
+   * call this explicitly for performance optimization or error handling.
+   *
+   * @returns {Promise<void>} Promise that resolves when TACo WASM is initialized
+   *
+   * @example
+   * ```typescript
+   * // Optional: Pre-initialize for better performance
+   * await TacoClient.initialize();
+   *
+   * // All TacoClient instances share the same initialization
+   * const client1 = new TacoClient(config1);
+   * const client2 = new TacoClient(config2);
+   *
+   * // Operations automatically wait for initialization
+   * const encrypted = await client1.encrypt(data, condition);
+   * ```
+   */
+  static async initialize(): Promise<void> {
+    if (!TacoClient.initializationPromise) {
+      TacoClient.initializationPromise = (async () => {
+        try {
+          await initialize();
+          console.debug(`TACo initialized successfully.`);
+        } catch (error) {
+          console.error(`TACo initialization failed: ${error}`);
+          throw error; // Re-throw to maintain error propagation
+        }
+      })();
+    }
+    return TacoClient.initializationPromise;
+  }
 
   /**
    * Create a new TacoClient instance
@@ -113,6 +143,7 @@ export class TacoClient {
       domain: this.config.domain,
       ritualId: this.config.ritualId,
     });
+    TacoClient.initialize();
   }
 
   /**
@@ -161,6 +192,8 @@ export class TacoClient {
     data: string | Uint8Array,
     accessCondition: Condition,
   ): Promise<ThresholdMessageKit> {
+    await TacoClient.initialize();
+
     console.debug('Starting encryption', {
       domain: this.config.domain,
       ritualId: this.config.ritualId,
@@ -220,6 +253,8 @@ export class TacoClient {
     messageKit: ThresholdMessageKit,
     conditionContext?: ConditionContext,
   ): Promise<Uint8Array> {
+    await TacoClient.initialize();
+
     console.debug('Starting decryption', {
       domain: this.config.domain,
       hasContext: !!conditionContext,
