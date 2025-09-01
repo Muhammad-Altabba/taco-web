@@ -175,15 +175,26 @@ describe.skipIf(!process.env.RUNNING_IN_CI)(
           );
         }
 
-        // Decrypt using TacoClient
+        // Decrypt using TacoClient with Uint8Array
         const decryptedBytes = await tacoClient.decrypt(
-          messageKit,
+          messageKit.toBytes(),
           conditionContext,
         );
         const decryptedMessageString = fromBytes(decryptedBytes);
 
         // Verify decryption
         expect(decryptedMessageString).toEqual(messageString);
+
+        // Also test decryption with messageKit directly
+        const decryptedBytes2 = await tacoClient.decrypt(
+          messageKit,
+          conditionContext,
+        );
+        const decryptedMessageString2 = fromBytes(decryptedBytes2);
+
+        // Verify both methods produce same result
+        expect(decryptedMessageString2).toEqual(messageString);
+        expect(decryptedMessageString2).toEqual(decryptedMessageString);
       }, 15000);
 
       test('should throw error when viem client points to incompatible chain', async () => {

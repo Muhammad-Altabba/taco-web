@@ -71,6 +71,9 @@ const conditionContext = ConditionContext.fromMessageKit(messageKit);
 // conditionContext.addAuthProvider(USER_ADDRESS_PARAM_DEFAULT, authProvider);
 
 const decrypted = await tacoClient.decrypt(messageKit, conditionContext);
+// OR with encrypted bytes:
+// const decrypted = await tacoClient.decrypt(messageKit.toBytes(), conditionContext);
+
 const message = new TextDecoder().decode(decrypted);
 console.log(message); // "Hello, secret world!"
 ```

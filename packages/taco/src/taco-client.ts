@@ -238,22 +238,31 @@ export class TacoClient {
   }
 
   /**
-   * Decrypt a message kit with optional condition context
+   * Decrypt data using TACo
    *
-   * @param messageKit - Encrypted message kit
+   * @param encryptedData - Either a ThresholdMessageKit or encrypted bytes (Uint8Array)
    * @param conditionContext - Optional condition context for time-based conditions
    * @returns {Promise<Uint8Array>} Decrypted data
    *
    * @example
    * ```typescript
+   * // With messageKit
    * const decrypted = await tacoClient.decrypt(messageKit, conditionContext);
+   * 
+   * // With encrypted bytes
+   * const decrypted = await tacoClient.decrypt(encryptedBytes, conditionContext);
    * ```
    */
   async decrypt(
-    messageKit: ThresholdMessageKit,
+    encryptedData: ThresholdMessageKit | Uint8Array,
     conditionContext?: ConditionContext,
   ): Promise<Uint8Array> {
     await TacoClient.initialize();
+
+    // Handle both messageKit and encrypted bytes
+    const messageKit = encryptedData instanceof ThresholdMessageKit 
+      ? encryptedData 
+      : ThresholdMessageKit.fromBytes(encryptedData);
 
     console.debug('Starting decryption', {
       domain: this.config.domain,

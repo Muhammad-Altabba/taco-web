@@ -192,6 +192,8 @@ const conditionContext = ConditionContext.fromMessageKit(messageKit);
 // if needed Add authentication for ":userAddress" in condition...
 
 const decryptedMessage = await tacoClient.decrypt(messageKit, conditionContext);
+// OR with encrypted bytes:
+// const decryptedMessage = await tacoClient.decrypt(messageKit.toBytes(), conditionContext);
 ```
 
 ### Dual Configuration Support
