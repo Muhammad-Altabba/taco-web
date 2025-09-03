@@ -114,7 +114,6 @@ export class TacoClient {
       TacoClient.initializationPromise = (async () => {
         try {
           await initialize();
-          console.debug(`TACo initialized successfully.`);
         } catch (error) {
           console.error(`TACo initialization failed: ${error}`);
           throw error; // Re-throw to maintain error propagation
@@ -139,10 +138,6 @@ export class TacoClient {
 
     this.config = config;
 
-    console.debug(`TacoClient initialized`, {
-      domain: this.config.domain,
-      ritualId: this.config.ritualId,
-    });
     TacoClient.initialize();
   }
 
@@ -194,13 +189,6 @@ export class TacoClient {
   ): Promise<ThresholdMessageKit> {
     await TacoClient.initialize();
 
-    console.debug('Starting encryption', {
-      domain: this.config.domain,
-      ritualId: this.config.ritualId,
-      dataType: typeof data,
-      dataLength: data.length,
-    });
-
     try {
       let messageKit: ThresholdMessageKit;
 
@@ -230,7 +218,6 @@ export class TacoClient {
         );
       }
 
-      console.info('Encryption successful');
       return messageKit;
     } catch (error) {
       throw new Error(`TACo encryption failed: ${error}`);
@@ -248,7 +235,7 @@ export class TacoClient {
    * ```typescript
    * // With messageKit
    * const decrypted = await tacoClient.decrypt(messageKit, conditionContext);
-   * 
+   *
    * // With encrypted bytes
    * const decrypted = await tacoClient.decrypt(encryptedBytes, conditionContext);
    * ```
@@ -260,14 +247,10 @@ export class TacoClient {
     await TacoClient.initialize();
 
     // Handle both messageKit and encrypted bytes
-    const messageKit = encryptedData instanceof ThresholdMessageKit 
-      ? encryptedData 
-      : ThresholdMessageKit.fromBytes(encryptedData);
-
-    console.debug('Starting decryption', {
-      domain: this.config.domain,
-      hasContext: !!conditionContext,
-    });
+    const messageKit =
+      encryptedData instanceof ThresholdMessageKit
+        ? encryptedData
+        : ThresholdMessageKit.fromBytes(encryptedData);
 
     try {
       let decrypted: Uint8Array;
@@ -296,7 +279,6 @@ export class TacoClient {
         );
       }
 
-      console.info('Decryption successful');
       return decrypted;
     } catch (error) {
       throw new Error(`TaCo decryption failed: ${error}`);
