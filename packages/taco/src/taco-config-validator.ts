@@ -18,26 +18,6 @@ export type DomainName = 'lynx' | 'tapir' | 'mainnet';
  * Contains domain names, chain IDs, and core infrastructure information
  * needed for TACo operations across different networks.
  *
- * ## Available Domains:
- *
- * ### `lynx` - DEVNET: Bleeding-edge developer network
- * - **Network Type**: DEVNET (Development/Experimental)
- * - **Chain ID**: 80002 (Polygon Amoy)
- * - **Status**: Testnet (Development) - May have breaking changes
- * - **Rituals**: Open ritual available - **Cohort**: 2-of-3
- *
- * ### `tapir` - TESTNET: Stable testnet for current TACo release
- * - **Network Type**: TESTNET (Testing/Stable)
- * - **Chain ID**: 80002 (Polygon Amoy)
- * - **Status**: Testnet (Stable) - Recommended for testing
- * - **Rituals**: Stable ritual configuration - **Cohort**: 3-of-5
- *
- * ### `mainnet` - MAINNET: Production network for live applications
- * - **Network Type**: MAINNET (Production)
- * - **Chain ID**: 137 (Polygon)
- * - **Status**: Production (Live) - For real applications
- * - **Rituals**: Production ritual configuration - **Cohort**: 5-of-8
- *
  * @example
  * ```typescript
  * // Get domain information

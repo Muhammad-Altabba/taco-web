@@ -35,7 +35,6 @@ const CONSUMER_PRIVATE_KEY =
 const DOMAIN = 'lynx';
 const RITUAL_ID = 27;
 const CHAIN_ID = 80002; // Polygon Amoy
-const INCOMPATIBLE_CHAIN_ID = 11155111; // Sepolia
 
 // Create viem accounts from private keys
 const encryptorAccount = privateKeyToAccount(
