@@ -148,31 +148,31 @@ export class TacoConfigValidator {
   ): Promise<boolean> {
     let chainId: number;
 
+    if (!provider || typeof provider !== 'object') {
+      // Invalid provider
+      return false;
+    }
+
+    // Try to detect provider type and get chain ID safely
     try {
-      // Try to detect provider type and get chain ID safely
-      if (provider && typeof provider === 'object') {
-        // Check if it's a viem PublicClient (has getChainId method)
-        if (
-          'getChainId' in provider &&
-          typeof provider.getChainId === 'function'
-        ) {
-          chainId = await (provider as PublicClient).getChainId();
-        }
-        // Check if it's an ethers Provider (has getNetwork method)
-        else if (
-          'getNetwork' in provider &&
-          typeof provider.getNetwork === 'function'
-        ) {
-          const network = await (
-            provider as ethers.providers.Provider
-          ).getNetwork();
-          chainId = network.chainId;
-        } else {
-          // Unknown provider type
-          return false;
-        }
+      // Check if it's a viem PublicClient (has getChainId method)
+      if (
+        'getChainId' in provider &&
+        typeof provider.getChainId === 'function'
+      ) {
+        chainId = await (provider as PublicClient).getChainId();
+      }
+      // Check if it's an ethers Provider (has getNetwork method)
+      else if (
+        'getNetwork' in provider &&
+        typeof provider.getNetwork === 'function'
+      ) {
+        const network = await (
+          provider as ethers.providers.Provider
+        ).getNetwork();
+        chainId = network.chainId;
       } else {
-        // Invalid provider
+        // Unknown provider type
         return false;
       }
     } catch (error) {
