@@ -5,7 +5,6 @@ import { PublicClient, WalletClient } from '@nucypher/shared/src/viem-utils';
 import {
   EIP4361AuthProvider,
   USER_ADDRESS_PARAM_DEFAULT,
-  ViemEIP4361AuthProvider,
 } from '@nucypher/taco-auth';
 import { ethers } from 'ethers';
 import { createPublicClient, createWalletClient, http } from 'viem';
@@ -20,6 +19,7 @@ import {
   ThresholdMessageKit,
 } from '../src';
 import { CompoundCondition } from '../src/conditions/compound-condition';
+import { DkgClient } from '../src/dkg';
 import {
   decrypt as viemDecrypt,
   encrypt as viemEncrypt,
@@ -164,9 +164,9 @@ describe.skipIf(!process.env.RUNNING_IN_CI)(
             USER_ADDRESS_PARAM_DEFAULT,
           )
         ) {
-          const authProvider = await ViemEIP4361AuthProvider.create(
-            viemPublicClient,
-            consumerAccount,
+          const authProvider = new EIP4361AuthProvider(
+            ethersProvider,
+            consumerSigner,
           );
           conditionContext.addAuthProvider(
             USER_ADDRESS_PARAM_DEFAULT,
@@ -194,6 +194,65 @@ describe.skipIf(!process.env.RUNNING_IN_CI)(
         // Verify both methods produce same result
         expect(decryptedMessageString2).toEqual(messageString);
         expect(decryptedMessageString2).toEqual(decryptedMessageString);
+      }, 15000);
+
+      test('should encrypt and decrypt using encryptWithPublicKey with viem', async () => {
+        // Create TacoClient with viem configuration
+        const tacoClient = new TacoClient({
+          domain: DOMAIN,
+          ritualId: RITUAL_ID,
+          viemClient: viemPublicClient,
+          viemAccount: encryptorAccount,
+        });
+
+        // Get DKG public key from ritual using ethers provider
+        const dkgRitual = await DkgClient.getActiveRitual(
+          ethersProvider,
+          DOMAIN,
+          RITUAL_ID,
+        );
+        const dkgPublicKey = dkgRitual.dkgPublicKey;
+
+        const messageString = 'This is an offline encrypted message 🔐';
+        const message = toBytes(messageString);
+        const condition = createTestCondition();
+
+        // Test encryptWithPublicKey (offline encryption)
+        const messageKit = await tacoClient.encryptWithPublicKey(
+          message,
+          condition,
+          dkgPublicKey,
+        );
+        expect(messageKit).toBeInstanceOf(ThresholdMessageKit);
+
+        // Prepare condition context for decryption
+        const conditionContext =
+          conditions.context.ConditionContext.fromMessageKit(messageKit);
+
+        if (
+          conditionContext.requestedContextParameters.has(
+            USER_ADDRESS_PARAM_DEFAULT,
+          )
+        ) {
+          const authProvider = new EIP4361AuthProvider(
+            ethersProvider,
+            consumerSigner,
+          );
+          conditionContext.addAuthProvider(
+            USER_ADDRESS_PARAM_DEFAULT,
+            authProvider,
+          );
+        }
+
+        // Decrypt the message
+        const decryptedBytes = await tacoClient.decrypt(
+          messageKit,
+          conditionContext,
+        );
+        const decryptedMessageString = fromBytes(decryptedBytes);
+
+        // Verify decryption matches original message
+        expect(decryptedMessageString).toEqual(messageString);
       }, 15000);
 
       test('should throw error when viem client points to incompatible chain', async () => {
@@ -256,6 +315,66 @@ describe.skipIf(!process.env.RUNNING_IN_CI)(
         const decryptedMessageString = fromBytes(decryptedBytes);
 
         // Verify decryption
+        expect(decryptedMessageString).toEqual(messageString);
+      }, 15000);
+
+      test('should encrypt and decrypt using encryptWithPublicKey with ethers', async () => {
+        // Create TacoClient with ethers configuration
+        const tacoClient = new TacoClient({
+          domain: DOMAIN,
+          ritualId: RITUAL_ID,
+          ethersProvider: ethersProvider,
+          ethersSigner: encryptorSigner,
+        });
+
+        // Get DKG public key from ritual
+        const dkgRitual = await DkgClient.getActiveRitual(
+          ethersProvider,
+          DOMAIN,
+          RITUAL_ID,
+        );
+        const dkgPublicKey = dkgRitual.dkgPublicKey;
+
+        const messageString =
+          'This is an offline encrypted message with ethers 🔐';
+        const message = toBytes(messageString);
+        const condition = createTestCondition();
+
+        // Test encryptWithPublicKey (offline encryption)
+        const messageKit = await tacoClient.encryptWithPublicKey(
+          message,
+          condition,
+          dkgPublicKey,
+        );
+        expect(messageKit).toBeInstanceOf(ThresholdMessageKit);
+
+        // Prepare condition context for decryption
+        const conditionContext =
+          conditions.context.ConditionContext.fromMessageKit(messageKit);
+
+        if (
+          conditionContext.requestedContextParameters.has(
+            USER_ADDRESS_PARAM_DEFAULT,
+          )
+        ) {
+          const authProvider = new EIP4361AuthProvider(
+            ethersProvider,
+            consumerSigner,
+          );
+          conditionContext.addAuthProvider(
+            USER_ADDRESS_PARAM_DEFAULT,
+            authProvider,
+          );
+        }
+
+        // Decrypt the message
+        const decryptedBytes = await tacoClient.decrypt(
+          messageKit,
+          conditionContext,
+        );
+        const decryptedMessageString = fromBytes(decryptedBytes);
+
+        // Verify decryption matches original message
         expect(decryptedMessageString).toEqual(messageString);
       }, 15000);
 

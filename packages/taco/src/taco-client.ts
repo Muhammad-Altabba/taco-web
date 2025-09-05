@@ -6,16 +6,20 @@
  * class-based architectures.
  */
 
-import { initialize, ThresholdMessageKit } from '@nucypher/nucypher-core';
+import {
+  DkgPublicKey,
+  initialize,
+  ThresholdMessageKit,
+} from '@nucypher/nucypher-core';
 
 import {
-  isEthersConfig,
-  isViemConfig,
   type TacoClientConfig,
+  type TacoClientEthersConfig,
+  type TacoClientViemConfig,
 } from './client-config.js';
 import { Condition } from './conditions/condition.js';
 import { ConditionContext } from './conditions/context/index.js';
-import { decrypt, encrypt } from './encrypt-decrypt.js';
+import { decrypt, encrypt, encryptWithPublicKey } from './encrypt-decrypt.js';
 import {
   TacoConfigValidator,
   type ValidationResult,
@@ -190,37 +194,62 @@ export class TacoClient {
     await TacoClient.initialize();
 
     try {
-      let messageKit: ThresholdMessageKit;
-
-      if (isViemConfig(this.config)) {
-        // Use viem API
-        messageKit = await encrypt(
-          this.config.viemClient,
-          this.config.domain,
-          data,
-          accessCondition,
-          this.config.ritualId,
-          this.config.viemAccount,
-        );
-      } else if (isEthersConfig(this.config)) {
-        // Use ethers API
-        messageKit = await encrypt(
-          this.config.ethersProvider,
-          this.config.domain,
-          data,
-          accessCondition,
-          this.config.ritualId,
-          this.config.ethersSigner,
-        );
-      } else {
-        throw new Error(
-          'Invalid configuration: must provide either viem or ethers objects',
-        );
-      }
+      const messageKit = await encrypt(
+        (this.config as TacoClientEthersConfig).ethersProvider ||
+          (this.config as TacoClientViemConfig).viemClient,
+        this.config.domain,
+        data,
+        accessCondition,
+        this.config.ritualId,
+        (this.config as TacoClientEthersConfig).ethersSigner ||
+          (this.config as TacoClientViemConfig).viemAccount,
+      );
 
       return messageKit;
     } catch (error) {
       throw new Error(`TACo encryption failed: ${error}`);
+    }
+  }
+
+  /**
+   * Encrypt data with a provided DKG public key under a specified condition
+   *
+   * This method can be used offline since it doesn't require network access to fetch
+   * the DKG public key (unlike the `encrypt` method which fetches it from the ritual).
+   *
+   * @param data - String or Uint8Array to encrypt
+   * @param accessCondition - Access condition for decryption
+   * @param dkgPublicKey - The DKG public key to use for encryption
+   * @returns {Promise<ThresholdMessageKit>} Encrypted message kit
+   *
+   * @example
+   * ```typescript
+   * // Get DKG public key from ritual or cache
+   * const dkgPublicKey = await getDkgPublicKey(domain, ritualId);
+   *
+   * // Encrypt offline using the public key
+   * const messageKit = await tacoClient.encryptWithPublicKey('Hello, secret!', condition, dkgPublicKey);
+   * ```
+   */
+  async encryptWithPublicKey(
+    data: string | Uint8Array,
+    accessCondition: Condition,
+    dkgPublicKey: DkgPublicKey,
+  ): Promise<ThresholdMessageKit> {
+    await TacoClient.initialize();
+
+    try {
+      const messageKit = await encryptWithPublicKey(
+        data,
+        accessCondition,
+        dkgPublicKey,
+        (this.config as TacoClientEthersConfig).ethersSigner ||
+          (this.config as TacoClientViemConfig).viemAccount,
+      );
+
+      return messageKit;
+    } catch (error) {
+      throw new Error(`TACo encryption with public key failed: ${error}`);
     }
   }
 
@@ -253,31 +282,14 @@ export class TacoClient {
         : ThresholdMessageKit.fromBytes(encryptedData);
 
     try {
-      let decrypted: Uint8Array;
-
-      if (isViemConfig(this.config)) {
-        // Use viem API
-        decrypted = await decrypt(
-          this.config.viemClient,
-          this.config.domain,
-          messageKit,
-          conditionContext,
-          this.config.porterUris,
-        );
-      } else if (isEthersConfig(this.config)) {
-        // Use ethers API
-        decrypted = await decrypt(
-          this.config.ethersProvider,
-          this.config.domain,
-          messageKit,
-          conditionContext,
-          this.config.porterUris,
-        );
-      } else {
-        throw new Error(
-          'Invalid configuration: must provide either viem or ethers objects',
-        );
-      }
+      const decrypted = await decrypt(
+        (this.config as TacoClientEthersConfig).ethersProvider ||
+          (this.config as TacoClientViemConfig).viemClient,
+        this.config.domain,
+        messageKit,
+        conditionContext,
+        this.config.porterUris,
+      );
 
       return decrypted;
     } catch (error) {
