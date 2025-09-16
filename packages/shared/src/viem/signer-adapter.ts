@@ -1,6 +1,5 @@
-import { ethers } from 'ethers';
-
-import { type TacoSigner } from '../taco-signer';
+import { type TACoSigner } from '../taco-interfaces';
+import { SignerLike } from '../types';
 
 import { type Address, type SignerAccount } from './types';
 
@@ -42,20 +41,32 @@ export class ViemSignerAdapter implements TacoSigner {
 
   async signMessage(message: string | Uint8Array): Promise<string> {
     if (!this.viemAccount.signMessage) {
-      throw new Error(
-        'Account does not support message signing. Expected a LocalAccount or a WalletClient with signing capability.',
-      );
+      throw new Error('Account does not support message signing');
     }
     if (typeof message === 'string') {
-      return await this.viemAccount.signMessage({
-        account: await this.getAddress(),
-        message,
-      });
+      return await this.viemAccount.signMessage({ message });
     } else {
       return await this.viemAccount.signMessage({
-        account: await this.getAddress(),
         message: { raw: message },
       });
     }
+  }
+}
+
+/**
+ * Convert viem account to TACoSigner or return existing signer
+ *
+ * This is the main entry point for creating signers for internal TACo use.
+ * Unlike toEthersProvider which creates actual ethers objects,
+ * this creates minimal adapters implementing only what TACo needs.
+ *
+ * @param signerLike - Either a viem Account or an existing TACoSigner
+ * @returns A TACoSigner interface implementation
+ */
+export function toTACoSigner(signerLike: SignerLike): TACoSigner {
+  if (isViemAccount(signerLike)) {
+    return new ViemSignerAdapter(signerLike);
+  } else {
+    return signerLike;
   }
 }
