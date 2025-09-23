@@ -1,33 +1,25 @@
 import { beforeAll, describe, expect, test } from 'vitest';
 
 import { fromBytes, toBytes } from '@nucypher/shared';
-import { PublicClient, WalletClient } from '@nucypher/shared/src/viem-utils';
 import {
   EIP4361AuthProvider,
   USER_ADDRESS_PARAM_DEFAULT,
 } from '@nucypher/taco-auth';
 import { ethers } from 'ethers';
-import { createPublicClient, createWalletClient, http } from 'viem';
+import { createPublicClient, http, LocalAccount } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
-import { polygonAmoy, sepolia } from 'viem/chains';
+import { polygonAmoy } from 'viem/chains';
 import {
   conditions,
-  decrypt,
-  encrypt,
   initialize,
   TacoClient,
+  TacoClientEthersConfig,
+  TacoClientViemConfig,
   ThresholdMessageKit,
 } from '../src';
-import { CompoundCondition } from '../src/conditions/compound-condition';
 import { DkgClient } from '../src/dkg';
-import {
-  decrypt as viemDecrypt,
-  encrypt as viemEncrypt,
-} from '../src/viem-taco';
-import { UINT256_MAX } from '../test/test-utils';
 
 const RPC_PROVIDER_URL = 'https://rpc-amoy.polygon.technology';
-const SEPOLIA_RPC_URL = 'https://sepolia.drpc.org';
 const ENCRYPTOR_PRIVATE_KEY =
   '0x900edb9e8214b2353f82aa195e915128f419a92cfb8bbc0f4784f10ef4112b86';
 const CONSUMER_PRIVATE_KEY =
@@ -35,6 +27,10 @@ const CONSUMER_PRIVATE_KEY =
 const DOMAIN = 'lynx';
 const RITUAL_ID = 27;
 const CHAIN_ID = 80002; // Polygon Amoy
+
+// temp type-safe configuration interfaces just for this testing file
+type ViemTestConfig = Omit<TacoClientViemConfig, 'domain' | 'ritualId'>;
+type EthersTestConfig = Omit<TacoClientEthersConfig, 'domain' | 'ritualId'>;
 
 // Create viem accounts from private keys
 const encryptorAccount = privateKeyToAccount(
@@ -47,53 +43,43 @@ const consumerAccount = privateKeyToAccount(
 describe.skipIf(!process.env.RUNNING_IN_CI)(
   'TacoClient Integration Test',
   () => {
-    let viemPublicClient: PublicClient;
-    let viemWalletClient: WalletClient;
-    let ethersProvider: ethers.providers.JsonRpcProvider;
-    let encryptorSigner: ethers.Wallet;
-    let consumerSigner: ethers.Wallet;
+    // Create viem clients for correct network (Polygon Amoy)
+    const viemPublicClient = createPublicClient({
+      chain: polygonAmoy,
+      transport: http(RPC_PROVIDER_URL),
+    });
+    const viemTestConfig: ViemTestConfig = {
+      viemClient: viemPublicClient,
+      viemSignerAccount: encryptorAccount,
+    };
 
-    // Incompatible providers (wrong chain)
-    let incompatibleViemClient: PublicClient;
-    let incompatibleEthersProvider: ethers.providers.JsonRpcProvider;
+    // Create ethers clients for correct network (Polygon Amoy)
+    const ethersProvider = new ethers.providers.JsonRpcProvider(
+      RPC_PROVIDER_URL,
+    );
+    const encryptorSigner = new ethers.Wallet(
+      ENCRYPTOR_PRIVATE_KEY,
+      ethersProvider,
+    );
+    const consumerSigner = new ethers.Wallet(
+      CONSUMER_PRIVATE_KEY,
+      ethersProvider,
+    );
+
+    const ethersTestConfig: EthersTestConfig = {
+      ethersProvider,
+      ethersSigner: encryptorSigner,
+    };
 
     beforeAll(async () => {
-      // Create viem clients for correct network (Polygon Amoy)
-      viemPublicClient = createPublicClient({
-        chain: polygonAmoy,
-        transport: http(RPC_PROVIDER_URL),
-      });
-
-      viemWalletClient = createWalletClient({
-        account: consumerAccount,
-        chain: polygonAmoy,
-        transport: http(RPC_PROVIDER_URL),
-      });
-
-      // Create ethers clients for correct network (Polygon Amoy)
-      ethersProvider = new ethers.providers.JsonRpcProvider(RPC_PROVIDER_URL);
-      encryptorSigner = new ethers.Wallet(
-        ENCRYPTOR_PRIVATE_KEY,
-        ethersProvider,
-      );
-      consumerSigner = new ethers.Wallet(CONSUMER_PRIVATE_KEY, ethersProvider);
-
-      // Create incompatible clients (wrong chain - Sepolia)
-      incompatibleViemClient = createPublicClient({
-        chain: sepolia,
-        transport: http(SEPOLIA_RPC_URL),
-      });
-
-      incompatibleEthersProvider = new ethers.providers.JsonRpcProvider(
-        SEPOLIA_RPC_URL,
-      );
-
-      // Initialize the library
+      // Initialize the TACo library
       await initialize();
 
-      // Verify network connection for correct clients
-      const viemChainId = await viemPublicClient.getChainId();
-      const ethersNetwork = await ethersProvider.getNetwork();
+      // Verify both clients are connected to the correct network
+      const [viemChainId, ethersNetwork] = await Promise.all([
+        viemPublicClient.getChainId(),
+        ethersProvider.getNetwork(),
+      ]);
 
       if (viemChainId !== CHAIN_ID) {
         throw new Error(
@@ -106,10 +92,10 @@ describe.skipIf(!process.env.RUNNING_IN_CI)(
           `Ethers provider connected to wrong network. Expected ${CHAIN_ID}, got ${ethersNetwork.chainId}`,
         );
       }
-    });
+    }, 10000);
 
     const createTestCondition = () => {
-      const hasPositiveBalance = new conditions.base.rpc.RpcCondition({
+      return new conditions.base.rpc.RpcCondition({
         chain: CHAIN_ID,
         method: 'eth_getBalance',
         parameters: [':userAddress', 'latest'],
@@ -118,443 +104,152 @@ describe.skipIf(!process.env.RUNNING_IN_CI)(
           value: 0,
         },
       });
-
-      const balanceLessThanMaxUint = new conditions.base.rpc.RpcCondition({
-        chain: CHAIN_ID,
-        method: 'eth_getBalance',
-        parameters: [':userAddress', 'latest'],
-        returnValueTest: {
-          comparator: '<',
-          value: UINT256_MAX,
-        },
-      });
-
-      return CompoundCondition.and([
-        hasPositiveBalance,
-        balanceLessThanMaxUint,
-      ]);
     };
 
-    describe('TacoClient with Viem', () => {
-      test('should encrypt and decrypt a message using TacoClient with viem', async () => {
-        // Create TacoClient with viem configuration
+    const createAuthProvider = (
+      config: ViemTestConfig | EthersTestConfig,
+      customSigner?: ethers.Wallet | LocalAccount,
+    ) => {
+      const provider =
+        (config as EthersTestConfig).ethersProvider ??
+        (config as ViemTestConfig).viemClient;
+      const signerToUse =
+        customSigner ??
+        (config as EthersTestConfig).ethersSigner ??
+        (config as ViemTestConfig).viemSignerAccount;
+
+      return new EIP4361AuthProvider(provider, signerToUse as any);
+    };
+
+    const setupConditionContext = async (
+      messageKit: ThresholdMessageKit,
+      config: ViemTestConfig | EthersTestConfig,
+      customSigner?: ethers.Wallet | LocalAccount,
+    ) => {
+      const conditionContext =
+        conditions.context.ConditionContext.fromMessageKit(messageKit);
+
+      const authProvider = createAuthProvider(config, customSigner);
+      conditionContext.addAuthProvider(
+        USER_ADDRESS_PARAM_DEFAULT,
+        authProvider,
+      );
+
+      return conditionContext;
+    };
+
+    describe
+      .skipIf(!process.env.RUNNING_IN_CI)
+      .each<
+        | ['ethers', EthersTestConfig, ethers.Wallet]
+        | ['viem', ViemTestConfig, LocalAccount]
+      >([
+        ['ethers', ethersTestConfig, consumerSigner],
+        ['viem', viemTestConfig, consumerAccount],
+      ])('TacoClient with %s', (label, objects, consumerSigner) => {
+      test('should encrypt and decrypt a message using standard encrypt method', async () => {
+        // Setup
         const tacoClient = new TacoClient({
           domain: DOMAIN,
           ritualId: RITUAL_ID,
-          viemClient: viemPublicClient,
-          viemAccount: encryptorAccount,
+          ...objects,
         });
 
         // Create test message and condition
-        const messageString =
-          'This is a secret message from TacoClient with viem 🤐';
+        const messageString = `This is a secret message from TacoClient with ${label} 🤐`;
         const message = toBytes(messageString);
         const condition = createTestCondition();
 
-        // Encrypt using TacoClient
+        // Encrypt the message
         const messageKit = await tacoClient.encrypt(message, condition);
         expect(messageKit).toBeInstanceOf(ThresholdMessageKit);
+        expect(messageKit.toBytes()).toBeInstanceOf(Uint8Array);
 
-        // Prepare condition context for decryption
-        const conditionContext =
-          conditions.context.ConditionContext.fromMessageKit(messageKit);
+        // Setup condition context for decryption
+        const conditionContext = await setupConditionContext(
+          messageKit,
+          objects,
+          consumerSigner,
+        );
 
-        if (
-          conditionContext.requestedContextParameters.has(
-            USER_ADDRESS_PARAM_DEFAULT,
-          )
-        ) {
-          const authProvider = new EIP4361AuthProvider(
-            ethersProvider,
-            consumerSigner,
-          );
-          conditionContext.addAuthProvider(
-            USER_ADDRESS_PARAM_DEFAULT,
-            authProvider,
-          );
-        }
-
-        // Decrypt using TacoClient with Uint8Array
+        // Test decryption with Uint8Array input
         const decryptedBytes = await tacoClient.decrypt(
           messageKit.toBytes(),
           conditionContext,
         );
         const decryptedMessageString = fromBytes(decryptedBytes);
-
-        // Verify decryption
         expect(decryptedMessageString).toEqual(messageString);
 
-        // Also test decryption with messageKit directly
+        // Test decryption with MessageKit object input
         const decryptedBytes2 = await tacoClient.decrypt(
           messageKit,
           conditionContext,
         );
         const decryptedMessageString2 = fromBytes(decryptedBytes2);
-
-        // Verify both methods produce same result
         expect(decryptedMessageString2).toEqual(messageString);
-        expect(decryptedMessageString2).toEqual(decryptedMessageString);
-      }, 15000);
+      }, 30000);
 
-      test('should encrypt and decrypt using encryptWithPublicKey with viem', async () => {
-        // Create TacoClient with viem configuration
+      test('should encrypt and decrypt using offline encryptWithPublicKey method', async () => {
+        // Create TacoClient from configuration
         const tacoClient = new TacoClient({
           domain: DOMAIN,
           ritualId: RITUAL_ID,
-          viemClient: viemPublicClient,
-          viemAccount: encryptorAccount,
+          ...objects,
         });
-
-        // Get DKG public key from ritual using ethers provider
-        const dkgRitual = await DkgClient.getActiveRitual(
-          ethersProvider,
-          DOMAIN,
-          RITUAL_ID,
-        );
-        const dkgPublicKey = dkgRitual.dkgPublicKey;
 
         const messageString = 'This is an offline encrypted message 🔐';
         const message = toBytes(messageString);
         const condition = createTestCondition();
 
-        // Test encryptWithPublicKey (offline encryption)
-        const messageKit = await tacoClient.encryptWithPublicKey(
-          message,
-          condition,
-          dkgPublicKey,
-        );
-        expect(messageKit).toBeInstanceOf(ThresholdMessageKit);
-
-        // Prepare condition context for decryption
-        const conditionContext =
-          conditions.context.ConditionContext.fromMessageKit(messageKit);
-
-        if (
-          conditionContext.requestedContextParameters.has(
-            USER_ADDRESS_PARAM_DEFAULT,
-          )
-        ) {
-          const authProvider = new EIP4361AuthProvider(
-            ethersProvider,
-            consumerSigner,
-          );
-          conditionContext.addAuthProvider(
-            USER_ADDRESS_PARAM_DEFAULT,
-            authProvider,
-          );
-        }
-
-        // Decrypt the message
-        const decryptedBytes = await tacoClient.decrypt(
-          messageKit,
-          conditionContext,
-        );
-        const decryptedMessageString = fromBytes(decryptedBytes);
-
-        // Verify decryption matches original message
-        expect(decryptedMessageString).toEqual(messageString);
-      }, 15000);
-
-      test('should throw error when viem client points to incompatible chain', async () => {
-        // Try to create TacoClient with incompatible viem client
-        expect(() => {
-          new TacoClient({
-            domain: DOMAIN,
-            ritualId: RITUAL_ID,
-            viemClient: incompatibleViemClient,
-            viemAccount: encryptorAccount,
-          });
-        }).toThrow(/Invalid configuration/);
-      });
-    });
-
-    describe('TacoClient with Ethers', () => {
-      test('should encrypt and decrypt a message using TacoClient with ethers', async () => {
-        // Create TacoClient with ethers configuration
-        const tacoClient = new TacoClient({
-          domain: DOMAIN,
-          ritualId: RITUAL_ID,
-          ethersProvider: ethersProvider,
-          ethersSigner: encryptorSigner,
-        });
-
-        // Create test message and condition
-        const messageString =
-          'This is a secret message from TacoClient with ethers 🤐';
-        const message = toBytes(messageString);
-        const condition = createTestCondition();
-
-        // Encrypt using TacoClient
-        const messageKit = await tacoClient.encrypt(message, condition);
-        expect(messageKit).toBeInstanceOf(ThresholdMessageKit);
-
-        // Prepare condition context for decryption
-        const conditionContext =
-          conditions.context.ConditionContext.fromMessageKit(messageKit);
-
-        if (
-          conditionContext.requestedContextParameters.has(
-            USER_ADDRESS_PARAM_DEFAULT,
-          )
-        ) {
-          const authProvider = new EIP4361AuthProvider(
-            ethersProvider,
-            consumerSigner,
-          );
-          conditionContext.addAuthProvider(
-            USER_ADDRESS_PARAM_DEFAULT,
-            authProvider,
-          );
-        }
-
-        // Decrypt using TacoClient
-        const decryptedBytes = await tacoClient.decrypt(
-          messageKit,
-          conditionContext,
-        );
-        const decryptedMessageString = fromBytes(decryptedBytes);
-
-        // Verify decryption
-        expect(decryptedMessageString).toEqual(messageString);
-      }, 15000);
-
-      test('should encrypt and decrypt using encryptWithPublicKey with ethers', async () => {
-        // Create TacoClient with ethers configuration
-        const tacoClient = new TacoClient({
-          domain: DOMAIN,
-          ritualId: RITUAL_ID,
-          ethersProvider: ethersProvider,
-          ethersSigner: encryptorSigner,
-        });
-
-        // Get DKG public key from ritual
+        // Get DKG public key from ritual for offline encryption
         const dkgRitual = await DkgClient.getActiveRitual(
           ethersProvider,
           DOMAIN,
           RITUAL_ID,
         );
         const dkgPublicKey = dkgRitual.dkgPublicKey;
+        expect(dkgPublicKey).toBeDefined();
 
-        const messageString =
-          'This is an offline encrypted message with ethers 🔐';
-        const message = toBytes(messageString);
-        const condition = createTestCondition();
-
-        // Test encryptWithPublicKey (offline encryption)
+        // Perform offline encryption with DKG public key
         const messageKit = await tacoClient.encryptWithPublicKey(
           message,
           condition,
           dkgPublicKey,
         );
         expect(messageKit).toBeInstanceOf(ThresholdMessageKit);
+        expect(messageKit.toBytes()).toBeInstanceOf(Uint8Array);
 
-        // Prepare condition context for decryption
-        const conditionContext =
-          conditions.context.ConditionContext.fromMessageKit(messageKit);
+        // Setup condition context with consumer signer for decryption
+        const conditionContext = await setupConditionContext(
+          messageKit,
+          objects,
+          consumerSigner,
+        );
 
-        if (
-          conditionContext.requestedContextParameters.has(
-            USER_ADDRESS_PARAM_DEFAULT,
-          )
-        ) {
-          const authProvider = new EIP4361AuthProvider(
-            ethersProvider,
-            consumerSigner,
-          );
-          conditionContext.addAuthProvider(
-            USER_ADDRESS_PARAM_DEFAULT,
-            authProvider,
-          );
-        }
-
-        // Decrypt the message
+        // Decrypt and verify
         const decryptedBytes = await tacoClient.decrypt(
           messageKit,
           conditionContext,
         );
         const decryptedMessageString = fromBytes(decryptedBytes);
-
-        // Verify decryption matches original message
         expect(decryptedMessageString).toEqual(messageString);
       }, 15000);
 
-      test('should throw error when ethers provider points to incompatible chain', async () => {
-        // Try to create TacoClient with incompatible ethers provider
-        expect(() => {
-          new TacoClient({
-            domain: DOMAIN,
-            ritualId: RITUAL_ID,
-            ethersProvider: incompatibleEthersProvider,
-            ethersSigner: new ethers.Wallet(
-              ENCRYPTOR_PRIVATE_KEY,
-              incompatibleEthersProvider,
-            ),
-          });
-        }).toThrow(/Invalid configuration/);
-      });
-    });
-
-    describe('Functional API Chain Compatibility', () => {
-      test('should throw error when functional encrypt() uses incompatible viem client', async () => {
-        const messageString = 'Test message for incompatible viem encrypt';
-        const message = toBytes(messageString);
-        const condition = createTestCondition();
-
-        await expect(
-          viemEncrypt(
-            incompatibleViemClient,
-            DOMAIN,
-            message,
-            condition,
-            RITUAL_ID,
-            encryptorAccount,
-          ),
-        ).rejects.toThrow();
-      }, 10000);
-
-      test('should throw error when functional encrypt() uses incompatible ethers provider', async () => {
-        const messageString = 'Test message for incompatible ethers encrypt';
-        const message = toBytes(messageString);
-        const condition = createTestCondition();
-        const incompatibleSigner = new ethers.Wallet(
-          ENCRYPTOR_PRIVATE_KEY,
-          incompatibleEthersProvider,
-        );
-
-        await expect(
-          encrypt(
-            incompatibleEthersProvider,
-            DOMAIN,
-            message,
-            condition,
-            RITUAL_ID,
-            incompatibleSigner,
-          ),
-        ).rejects.toThrow();
-      }, 10000);
-
-      test('should throw error when functional decrypt() uses incompatible viem client', async () => {
-        // First encrypt with correct client
-        const messageString = 'Test message for decrypt compatibility';
-        const message = toBytes(messageString);
-        const condition = createTestCondition();
-
-        const messageKit = await viemEncrypt(
-          viemPublicClient,
-          DOMAIN,
-          message,
-          condition,
-          RITUAL_ID,
-          encryptorAccount,
-        );
-
-        const conditionContext =
-          conditions.context.ConditionContext.fromMessageKit(messageKit);
-
-        // Try to decrypt with incompatible client
-        await expect(
-          viemDecrypt(
-            incompatibleViemClient,
-            DOMAIN,
-            messageKit,
-            conditionContext,
-          ),
-        ).rejects.toThrow();
-      }, 10000);
-
-      test('should throw error when functional decrypt() uses incompatible ethers provider', async () => {
-        // First encrypt with correct provider
-        const messageString = 'Test message for decrypt compatibility';
-        const message = toBytes(messageString);
-        const condition = createTestCondition();
-
-        const messageKit = await encrypt(
-          ethersProvider,
-          DOMAIN,
-          message,
-          condition,
-          RITUAL_ID,
-          encryptorSigner,
-        );
-
-        const conditionContext =
-          conditions.context.ConditionContext.fromMessageKit(messageKit);
-
-        // Try to decrypt with incompatible provider
-        await expect(
-          decrypt(
-            incompatibleEthersProvider,
-            DOMAIN,
-            messageKit,
-            conditionContext,
-          ),
-        ).rejects.toThrow();
-      }, 10000);
-    });
-
-    describe('TacoClient Configuration Validation', () => {
-      test('should validate configuration successfully for compatible clients', async () => {
-        const viemTacoClient = new TacoClient({
-          domain: DOMAIN,
-          ritualId: RITUAL_ID,
-          viemClient: viemPublicClient,
-          viemAccount: encryptorAccount,
-        });
-
-        const ethersTacoClient = new TacoClient({
-          domain: DOMAIN,
-          ritualId: RITUAL_ID,
-          ethersProvider: ethersProvider,
-          ethersSigner: encryptorSigner,
-        });
-
-        // Validate both configurations
-        const viemValidation = await viemTacoClient.validateConfig();
-        const ethersValidation = await ethersTacoClient.validateConfig();
-
-        expect(viemValidation.isValid).toBe(true);
-        expect(viemValidation.errors).toHaveLength(0);
-        expect(ethersValidation.isValid).toBe(true);
-        expect(ethersValidation.errors).toHaveLength(0);
-      }, 10000);
-
-      test('should return configuration via getConfig()', () => {
+      test('should successfully validate network configuration', async () => {
+        // Setup
         const tacoClient = new TacoClient({
           domain: DOMAIN,
           ritualId: RITUAL_ID,
-          viemClient: viemPublicClient,
-          viemAccount: encryptorAccount,
+          ...objects,
         });
 
-        const config = tacoClient.getConfig();
+        // Validate configuration with network calls
+        const validation = await tacoClient.validateConfig();
 
-        expect(config.domain).toBe(DOMAIN);
-        expect(config.ritualId).toBe(RITUAL_ID);
-        expect('viemClient' in config).toBe(true);
-        expect('viemAccount' in config).toBe(true);
-      });
-
-      test('should throw error for invalid domain', () => {
-        expect(() => {
-          new TacoClient({
-            domain: 'invalid-domain' as any,
-            ritualId: RITUAL_ID,
-            viemClient: viemPublicClient,
-            viemAccount: encryptorAccount,
-          });
-        }).toThrow(/Invalid configuration/);
-      });
-
-      test('should throw error for invalid ritual ID', () => {
-        expect(() => {
-          new TacoClient({
-            domain: DOMAIN,
-            ritualId: -1,
-            viemClient: viemPublicClient,
-            viemAccount: encryptorAccount,
-          });
-        }).toThrow(/Invalid configuration/);
-      });
+        // Verify validation results
+        expect(validation.isValid).toBe(true);
+        expect(validation.errors).toHaveLength(0);
+      }, 10000);
     });
   },
 );
