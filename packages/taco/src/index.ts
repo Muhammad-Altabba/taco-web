@@ -11,8 +11,7 @@ export {
 
 export * as conditions from './conditions';
 
-export { decrypt, encrypt } from './encrypt-decrypt';
-export { encryptWithPublicKey } from './taco';
+export { decrypt, encrypt, encryptWithPublicKey } from './taco';
 
 // TaCo Configuration and Client
 export {

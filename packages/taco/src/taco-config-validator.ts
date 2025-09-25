@@ -221,8 +221,8 @@ export class TacoConfigValidator {
       if (!config.viemClient) {
         errors.push('viemClient is required for viem configuration');
       }
-      if (!config.viemAccount) {
-        errors.push('viemAccount is required for viem configuration');
+      if (!config.viemSignerAccount) {
+        errors.push('viemSignerAccount is required for viem configuration');
       }
     } else if ('ethersProvider' in config) {
       // Ethers configuration
@@ -234,7 +234,7 @@ export class TacoConfigValidator {
       }
     } else {
       errors.push(
-        'Configuration must include either viem objects (viemClient + viemAccount) or ethers objects (ethersProvider + ethersSigner)',
+        'Configuration must include either viem objects (viemClient + viemSignerAccount) or ethers objects (ethersProvider + ethersSigner)',
       );
     }
 

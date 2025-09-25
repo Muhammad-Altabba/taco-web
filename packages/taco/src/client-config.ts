@@ -5,7 +5,7 @@
  * for configuring TacoClient instances with different blockchain client libraries (viem, ethers.js).
  */
 
-import { type Account, type PublicClient } from '@nucypher/shared';
+import { type PublicClient, type SignerAccount } from '@nucypher/shared';
 import type { ethers } from 'ethers';
 
 import type { DomainName } from './taco-config-validator';
@@ -28,8 +28,8 @@ export interface TacoClientBaseConfig {
 export interface TacoClientViemConfig extends TacoClientBaseConfig {
   /** Viem PublicClient for blockchain operations */
   viemClient: PublicClient;
-  /** Viem Account for signing operations */
-  viemAccount: Account;
+  /** Viem SignerAccount for signing operations */
+  viemSignerAccount: SignerAccount;
 }
 
 /**
@@ -55,7 +55,7 @@ export type TacoClientConfig = TacoClientViemConfig | TacoClientEthersConfig;
 export function isViemConfig(
   config: TacoClientConfig,
 ): config is TacoClientViemConfig {
-  return 'viemClient' in config && 'viemAccount' in config;
+  return 'viemClient' in config && 'viemSignerAccount' in config;
 }
 
 /**

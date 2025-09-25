@@ -1,4 +1,5 @@
 import type { ethers } from 'ethers';
+import { type LocalAccount, type PublicClient } from 'viem';
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
@@ -26,7 +27,7 @@ const mockViemAccount = {
   address: '0x742d35Cc6632C0532c718F63b1a8D7d8a7fAd3b2',
   signMessage: vi.fn().mockResolvedValue('0x'),
   signTypedData: vi.fn().mockResolvedValue('0x'),
-} as unknown as Account;
+} as unknown as LocalAccount;
 
 // Mock ethers dependencies for testing
 const mockEthersProvider = {
@@ -93,7 +94,7 @@ describe('TacoConfigValidator', () => {
         domain: 'tapir',
         ritualId: 6,
         viemClient: mockViemClient,
-        viemAccount: mockViemAccount,
+        viemSignerAccount: mockViemAccount,
       });
 
       expect(result.isValid).toBe(true);
@@ -105,7 +106,7 @@ describe('TacoConfigValidator', () => {
         domain: 'INVALID_DOMAIN' as DomainName,
         ritualId: 999,
         viemClient: mockViemClient,
-        viemAccount: mockViemAccount,
+        viemSignerAccount: mockViemAccount,
       });
 
       expect(result.isValid).toBe(false);
@@ -116,7 +117,7 @@ describe('TacoConfigValidator', () => {
       const result = TacoConfigValidator.validateFast({
         ritualId: 6,
         viemClient: mockViemClient,
-        viemAccount: mockViemAccount,
+        viemSignerAccount: mockViemAccount,
       } as TacoClientConfig);
 
       expect(result.isValid).toBe(false);
@@ -148,7 +149,7 @@ describe('TacoClient', () => {
       domain: 'tapir',
       ritualId: 6,
       viemClient: mockViemClient,
-      viemAccount: mockViemAccount,
+      viemSignerAccount: mockViemAccount,
     };
 
     validEthersConfig = {
@@ -261,7 +262,7 @@ describe('TacoClient', () => {
             viemClient: mockViemClient,
             ethersProvider: mockEthersProvider,
           } as unknown as TacoClientConfig),
-      ).toThrow('viemAccount is required for viem configuration');
+      ).toThrow('viemSignerAccount is required for viem configuration');
     });
   });
 
@@ -370,7 +371,7 @@ describe('TacoClient', () => {
 
       expect(result.isValid).toBe(false);
       expect(result.errors).toContain(
-        'Configuration must include either viem objects (viemClient + viemAccount) or ethers objects (ethersProvider + ethersSigner)',
+        'Configuration must include either viem objects (viemClient + viemSignerAccount) or ethers objects (ethersProvider + ethersSigner)',
       );
     });
 
@@ -393,7 +394,7 @@ describe('TacoClient', () => {
             domain: 'tapir',
             ritualId: -5,
             viemClient: mockViemClient,
-            viemAccount: mockViemAccount,
+            viemSignerAccount: mockViemAccount,
           }),
       ).toThrow('Invalid ritual ID');
     });

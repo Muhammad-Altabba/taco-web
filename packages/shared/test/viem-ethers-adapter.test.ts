@@ -4,10 +4,12 @@ import { ethers } from 'ethers';
 import { privateKeyToAccount } from 'viem/accounts';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { createPublicClient, fallback, http, webSocket } from 'viem';
 import { fromHexString } from '../src';
-import { toEthersProvider } from '../src/viem/ethers-adapter';
+import { toEthersProvider, toTacoSigner } from '../src/adapters';
+import { viemClientToProvider } from '../src/viem/ethers-adapter';
 import { ViemSignerAdapter } from '../src/viem/signer-adapter';
-import { isViemClient } from '../src/viem/type-guards';
+import { isViemClient, isViemSignerAccount } from '../src/viem/type-guards';
 
 describe('viem ethers adapter', () => {
   const PRIVATE_KEY =
@@ -124,25 +126,17 @@ describe('viem ethers adapter', () => {
   });
 
   describe('ViemSignerAdapter', () => {
-    const PRIVATE_KEY =
-      '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'; // 32-byte hex
-
     const viemAccount = privateKeyToAccount(PRIVATE_KEY);
     const ethersSigner = new ethers.Wallet(PRIVATE_KEY);
 
     it('should create signer without provider', () => {
       const viemAdaptedSigner = new ViemSignerAdapter(viemAccount);
       expect(viemAdaptedSigner).toBeInstanceOf(ViemSignerAdapter);
-      const viemAdaptedSigner = new ViemSignerAdapter(viemAccount);
-      expect(viemAdaptedSigner).toBeInstanceOf(ViemSignerAdapter);
     });
 
     it('should get address from viem account', async () => {
       const viemAdaptedSigner = new ViemSignerAdapter(viemAccount);
-      const viemAdaptedSigner = new ViemSignerAdapter(viemAccount);
 
-      const address = await viemAdaptedSigner.getAddress();
-      expect(address).toBe(ethersSigner.address);
       const address = await viemAdaptedSigner.getAddress();
       expect(address).toBe(ethersSigner.address);
     });
@@ -154,25 +148,14 @@ describe('viem ethers adapter', () => {
 
       const ethersSignature = await ethersSigner.signMessage(message);
       expect(viemSignature).toBe(ethersSignature);
-      const message = 'test message';
-      const viemAdaptedSigner = new ViemSignerAdapter(viemAccount);
-      const viemSignature = await viemAdaptedSigner.signMessage(message);
-
-      const ethersSignature = await ethersSigner.signMessage(message);
-      expect(viemSignature).toBe(ethersSignature);
     });
 
     it('should sign Uint8Array message', async () => {
       const viemAdaptedSigner = new ViemSignerAdapter(viemAccount);
       const messageBytes = fromHexString('0xdeadbeef');
-      const viemAdaptedSigner = new ViemSignerAdapter(viemAccount);
-      const messageBytes = fromHexString('0xdeadbeef');
 
       const viemSignature = await viemAdaptedSigner.signMessage(messageBytes);
-      const viemSignature = await viemAdaptedSigner.signMessage(messageBytes);
 
-      const ethersSignature = await ethersSigner.signMessage(messageBytes);
-      expect(viemSignature).toBe(ethersSignature);
       const ethersSignature = await ethersSigner.signMessage(messageBytes);
       expect(viemSignature).toBe(ethersSignature);
     });

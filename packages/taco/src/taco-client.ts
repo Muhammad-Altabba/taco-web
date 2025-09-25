@@ -19,11 +19,11 @@ import {
 } from './client-config.js';
 import { Condition } from './conditions/condition.js';
 import { ConditionContext } from './conditions/context/index.js';
-import { decrypt, encrypt, encryptWithPublicKey } from './encrypt-decrypt.js';
 import {
   TacoConfigValidator,
   type ValidationResult,
 } from './taco-config-validator.js';
+import { decrypt, encrypt, encryptWithPublicKey } from './taco.js';
 
 /**
  * TacoClient provides an object-oriented interface for TACo operations
@@ -202,7 +202,7 @@ export class TacoClient {
         accessCondition,
         this.config.ritualId,
         (this.config as TacoClientEthersConfig).ethersSigner ||
-          (this.config as TacoClientViemConfig).viemAccount,
+          (this.config as TacoClientViemConfig).viemSignerAccount,
       );
 
       return messageKit;
@@ -244,7 +244,7 @@ export class TacoClient {
         accessCondition,
         dkgPublicKey,
         (this.config as TacoClientEthersConfig).ethersSigner ||
-          (this.config as TacoClientViemConfig).viemAccount,
+          (this.config as TacoClientViemConfig).viemSignerAccount,
       );
 
       return messageKit;
