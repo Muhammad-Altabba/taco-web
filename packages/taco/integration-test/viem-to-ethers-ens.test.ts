@@ -6,7 +6,7 @@ import { mainnet } from 'viem/chains';
 
 describe.skipIf(!process.env.RUNNING_IN_CI)('Viem-Ethers Adapter Integration Tests', () => {
   describe('ENS Registry', () => {
-    // TODO: will fix this in a different PR.
+    // TODO: will fix this in a different PR - issue #712
     test.skip('should properly read ENS registry contract address from viem client converted to ethers provider', async () => {
       // Test with chain that has ENS registry (mainnet)
       // Note: mainnet from viem/chains includes ENS registry configuration

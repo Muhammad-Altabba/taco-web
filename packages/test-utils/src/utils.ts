@@ -76,7 +76,7 @@ const makeFakeProvider = (
     getBlockNumber: () => Promise.resolve(blockNumber),
     getBlock: () => Promise.resolve(block),
     _isProvider: true,
-    getNetwork: () => Promise.resolve({ name: 'mockNetwork', chainId: 1234 }),
+    getNetwork: () => Promise.resolve({ name: 'mockNetwork', chainId: 80_002 }),
   };
 };
 
@@ -122,7 +122,7 @@ export const fakeViemPublicClient = (): PublicClient => {
 };
 
 export const fakeViemAccount = (
-  secretKeyBytes = SecretKey.random().toBEBytes(),
+  secretKeyBytes = ethers.utils.randomBytes(32),
 ): LocalAccount => {
   // Convert bytes to hex string for viem
   const privateKey = `0x${Buffer.from(secretKeyBytes).toString('hex')}`;

@@ -24,25 +24,25 @@ const ENCRYPTOR_PRIVATE_KEY =
   '0x900edb9e8214b2353f82aa195e915128f419a92cfb8bbc0f4784f10ef4112b86';
 const CONSUMER_PRIVATE_KEY =
   '0xf307e165339cb5deb2b8ec59c31a5c0a957b8e8453ce7fe8a19d9a4c8acf36d4';
-const DOMAIN = 'lynx';
-const RITUAL_ID = 27;
+const DOMAIN = 'tapir';
+const RITUAL_ID = 6;
 const CHAIN_ID = 80002; // Polygon Amoy
 
 // temp type-safe configuration interfaces just for this testing file
 type ViemTestConfig = Omit<TacoClientViemConfig, 'domain' | 'ritualId'>;
 type EthersTestConfig = Omit<TacoClientEthersConfig, 'domain' | 'ritualId'>;
 
-// Create viem accounts from private keys
-const encryptorAccount = privateKeyToAccount(
-  ENCRYPTOR_PRIVATE_KEY as `0x${string}`,
-);
-const consumerAccount = privateKeyToAccount(
-  CONSUMER_PRIVATE_KEY as `0x${string}`,
-);
-
 describe.skipIf(!process.env.RUNNING_IN_CI)(
   'TacoClient Integration Test',
   () => {
+    // Create viem accounts from private keys
+    const encryptorAccount = privateKeyToAccount(
+      ENCRYPTOR_PRIVATE_KEY as `0x${string}`,
+    );
+    const consumerAccount = privateKeyToAccount(
+      CONSUMER_PRIVATE_KEY as `0x${string}`,
+    );
+
     // Create viem clients for correct network (Polygon Amoy)
     const viemPublicClient = createPublicClient({
       chain: polygonAmoy,
@@ -244,11 +244,9 @@ describe.skipIf(!process.env.RUNNING_IN_CI)(
         });
 
         // Validate configuration with network calls
-        const validation = await tacoClient.validateConfig();
+        const validation = tacoClient.validateConfig();
 
-        // Verify validation results
-        expect(validation.isValid).toBe(true);
-        expect(validation.errors).toHaveLength(0);
+        expect(validation).resolves.not.toThrow();
       }, 10000);
     });
   },

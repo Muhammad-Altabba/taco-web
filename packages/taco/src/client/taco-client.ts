@@ -12,18 +12,16 @@ import {
   ThresholdMessageKit,
 } from '@nucypher/nucypher-core';
 
+import { Condition } from '../conditions/condition';
+import { ConditionContext } from '../conditions/context/index';
+import { decrypt, encrypt, encryptWithPublicKey } from '../taco';
+
 import {
   type TacoClientConfig,
   type TacoClientEthersConfig,
   type TacoClientViemConfig,
-} from './client-config.js';
-import { Condition } from './conditions/condition.js';
-import { ConditionContext } from './conditions/context/index.js';
-import {
-  TacoConfigValidator,
-  type ValidationResult,
-} from './taco-config-validator.js';
-import { decrypt, encrypt, encryptWithPublicKey } from './taco.js';
+} from './client-config';
+import { TacoConfigValidator } from './config-validator';
 
 /**
  * TacoClient provides an object-oriented interface for TACo operations
@@ -31,12 +29,6 @@ import { decrypt, encrypt, encryptWithPublicKey } from './taco.js';
  * This class encapsulates TACo configuration and provides simplified methods
  * for encryption and decryption operations. It handles configuration validation,
  * automatic WASM initialization, and provides enhanced error messages.
- *
- * **Key Features:**
- * - Automatic WASM initialization (singleton pattern)
- * - Supports both viem and ethers.js
- * - Configuration validation with helpful error messages
- * - Thread-safe initialization across multiple instances
  *
  * @example Using with viem:
  * ```typescript
@@ -130,7 +122,7 @@ export class TacoClient {
   /**
    * Create a new TacoClient instance
    *
-   * @param config - Configuration for the TacoClient
+   * @param {TacoClientConfig} config - Configuration for the TacoClient
    * @throws {Error} If configuration is invalid
    */
   constructor(config: TacoClientConfig) {
@@ -154,33 +146,34 @@ export class TacoClient {
    * - Network compatibility check (calls provider to verify chain ID matches domain)
    *
    * @returns {Promise<ValidationResult>} Promise resolving to validation result with isValid boolean and errors array
+   * @throws {Error} If configuration validation fails
    *
    * @example
    * ```typescript
-   * const result = await tacoClient.validateConfig();
-   * if (!result.isValid) {
-   *   console.error('Configuration errors:', result.errors);
+   * try {
+   *   await tacoClient.validateConfig();
+   *   console.log('Configuration is valid.');
+   * } catch (error) {
+   *   console.error('Configuration validation failed:', error.message);
    * }
    * ```
    */
-  async validateConfig(): Promise<ValidationResult> {
-    const validationResult = await TacoConfigValidator.validateFull(
-      this.config,
-    );
+  async validateConfig(): Promise<void> {
+    const validationResult = await TacoConfigValidator.validate(this.config);
     if (!validationResult.isValid) {
       throw new Error(
         `Invalid configuration: ${validationResult.errors.join(', ')}`,
       );
     }
-    return validationResult;
   }
 
   /**
    * Encrypt data with the given access condition
    *
-   * @param data - String or Uint8Array to encrypt
-   * @param accessCondition - Access condition for decryption
+   * @param {string | Uint8Array} data - String or Uint8Array to encrypt
+   * @param {Condition} accessCondition - Access condition for decryption
    * @returns {Promise<ThresholdMessageKit>} Encrypted message kit
+   * @throws {Error} If encryption fails
    *
    * @example
    * ```typescript
@@ -193,22 +186,18 @@ export class TacoClient {
   ): Promise<ThresholdMessageKit> {
     await TacoClient.initialize();
 
-    try {
-      const messageKit = await encrypt(
-        (this.config as TacoClientEthersConfig).ethersProvider ||
-          (this.config as TacoClientViemConfig).viemClient,
-        this.config.domain,
-        data,
-        accessCondition,
-        this.config.ritualId,
-        (this.config as TacoClientEthersConfig).ethersSigner ||
-          (this.config as TacoClientViemConfig).viemSignerAccount,
-      );
+    const messageKit = await encrypt(
+      (this.config as TacoClientEthersConfig).ethersProvider ||
+        (this.config as TacoClientViemConfig).viemClient,
+      this.config.domain,
+      data,
+      accessCondition,
+      this.config.ritualId,
+      (this.config as TacoClientEthersConfig).ethersSigner ||
+        (this.config as TacoClientViemConfig).viemSignerAccount,
+    );
 
-      return messageKit;
-    } catch (error) {
-      throw new Error(`TACo encryption failed: ${error}`);
-    }
+    return messageKit;
   }
 
   /**
@@ -217,10 +206,11 @@ export class TacoClient {
    * This method can be used offline since it doesn't require network access to fetch
    * the DKG public key (unlike the `encrypt` method which fetches it from the ritual).
    *
-   * @param data - String or Uint8Array to encrypt
-   * @param accessCondition - Access condition for decryption
-   * @param dkgPublicKey - The DKG public key to use for encryption
+   * @param {string | Uint8Array} data - String or Uint8Array to encrypt
+   * @param {Condition} accessCondition - Access condition for decryption
+   * @param {DkgPublicKey} dkgPublicKey - The DKG public key to use for encryption
    * @returns {Promise<ThresholdMessageKit>} Encrypted message kit
+   * @throws {Error} If encryption fails
    *
    * @example
    * ```typescript
@@ -238,27 +228,24 @@ export class TacoClient {
   ): Promise<ThresholdMessageKit> {
     await TacoClient.initialize();
 
-    try {
-      const messageKit = await encryptWithPublicKey(
-        data,
-        accessCondition,
-        dkgPublicKey,
-        (this.config as TacoClientEthersConfig).ethersSigner ||
-          (this.config as TacoClientViemConfig).viemSignerAccount,
-      );
+    const messageKit = await encryptWithPublicKey(
+      data,
+      accessCondition,
+      dkgPublicKey,
+      (this.config as TacoClientEthersConfig).ethersSigner ||
+        (this.config as TacoClientViemConfig).viemSignerAccount,
+    );
 
-      return messageKit;
-    } catch (error) {
-      throw new Error(`TACo encryption with public key failed: ${error}`);
-    }
+    return messageKit;
   }
 
   /**
    * Decrypt data using TACo
    *
-   * @param encryptedData - Either a ThresholdMessageKit or encrypted bytes (Uint8Array)
-   * @param conditionContext - Optional condition context for time-based conditions
+   * @param {ThresholdMessageKit | Uint8Array} encryptedData - Either a ThresholdMessageKit or encrypted bytes (Uint8Array)
+   * @param {ConditionContext} [conditionContext] - Optional condition context for time-based conditions
    * @returns {Promise<Uint8Array>} Decrypted data
+   * @throws {Error} If decryption fails
    *
    * @example
    * ```typescript
@@ -281,20 +268,16 @@ export class TacoClient {
         ? encryptedData
         : ThresholdMessageKit.fromBytes(encryptedData);
 
-    try {
-      const decrypted = await decrypt(
-        (this.config as TacoClientEthersConfig).ethersProvider ||
-          (this.config as TacoClientViemConfig).viemClient,
-        this.config.domain,
-        messageKit,
-        conditionContext,
-        this.config.porterUris,
-      );
+    const decrypted = await decrypt(
+      (this.config as TacoClientEthersConfig).ethersProvider ||
+        (this.config as TacoClientViemConfig).viemClient,
+      this.config.domain,
+      messageKit,
+      conditionContext,
+      this.config.porterUris,
+    );
 
-      return decrypted;
-    } catch (error) {
-      throw new Error(`TaCo decryption failed: ${error}`);
-    }
+    return decrypted;
   }
 
   /**

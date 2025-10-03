@@ -1,5 +1,6 @@
 export * from './adapters';
 export * from './contracts';
+export * from './domain';
 export * from './porter';
 export * from './schemas';
 export * from './taco-signer';

@@ -5,81 +5,16 @@
  * and configuration processing for TACo operations across different networks.
  */
 
+import {
+  DomainName,
+  DOMAINS,
+  isViemClient,
+  ProviderLike,
+} from '@nucypher/shared';
 import { ethers } from 'ethers';
 import type { PublicClient } from 'viem';
 
-import type { TacoClientConfig } from './client-config';
-
-export type DomainName = 'lynx' | 'tapir' | 'mainnet';
-
-/**
- * TACo domain configuration with essential network data
- *
- * Contains domain names, chain IDs, and core infrastructure information
- * needed for TACo operations across different networks.
- *
- * @example
- * ```typescript
- * // Get domain information
- * const lynxInfo = DOMAINS.DEVNET;
- * console.log(lynxInfo.domain); // 'lynx'
- * console.log(lynxInfo.chainId); // 80002
- * ```
- */
-export const DOMAINS = {
-  // lynx - DEVNET: Bleeding-edge developer network
-  DEVNET: {
-    domain: 'lynx',
-    chainId: 80002,
-  },
-  // tapir - TESTNET: Stable testnet for current TACo release
-  TESTNET: {
-    domain: 'tapir',
-    chainId: 80002,
-  },
-  // mainnet - MAINNET: Production network
-  MAINNET: {
-    domain: 'mainnet',
-    chainId: 137,
-  },
-} as const;
-
-/**
- * TACo Domain Name Constants
- *
- * Convenient constants for referencing TACo domain names in a type-safe manner.
- * Use these constants instead of hardcoded strings for better maintainability.
- */
-export const DOMAIN_NAMES = {
-  /** DEVNET domain ('lynx') - Bleeding-edge developer network */
-  DEVNET: 'lynx',
-  /** TESTNET domain ('tapir') - Stable testnet for current TACo release */
-  TESTNET: 'tapir',
-  /** MAINNET domain ('mainnet') - Production network */
-  MAINNET: 'mainnet',
-} as const;
-
-/**
- * Domain-ChainId validation type - creates a discriminated union
- * where each domain is linked to its specific chainId
- */
-export type DomainChainConfig = {
-  [K in keyof typeof DOMAINS]: {
-    domain: (typeof DOMAINS)[K]['domain'];
-    chainId: (typeof DOMAINS)[K]['chainId'];
-  };
-}[keyof typeof DOMAINS];
-
-/**
- * Validates that the provided domain and chainId combination is correct
- * TypeScript will enforce that only valid domain/chainId pairs are accepted
- */
-export function validateDomainChain(config: DomainChainConfig): boolean {
-  const domainInfo = Object.values(DOMAINS).find(
-    (info) => info.domain === config.domain,
-  );
-  return !!domainInfo && domainInfo.chainId === config.chainId;
-}
+import { isEthersConfig, isViemConfig, type TacoClientConfig } from '.';
 
 /**
  * Generic validation result interface
@@ -106,7 +41,7 @@ export class TacoConfigValidator {
 
   /**
    * Check if domain is valid
-   * @param domain - TACo domain name to check ('lynx', 'tapir', 'mainnet')
+   * @param {DomainName} domain - TACo domain name to check ('lynx', 'tapir', 'mainnet')
    * @returns {boolean} True if domain exists
    */
   static isValidDomain(domain: DomainName): boolean {
@@ -115,11 +50,11 @@ export class TacoConfigValidator {
 
   /**
    * Get expected chain ID for domain from DOMAINS configuration
-   * @param domain - Domain name to look up
+   * @param {DomainName} domain - Domain name to look up
    * @returns {number | undefined} Chain ID for the domain, undefined if not found
    * @private
    */
-  private static getExpectedChainId(domain: string): number | undefined {
+  private static getExpectedChainId(domain: DomainName): number | undefined {
     const domainEntry = Object.values(DOMAINS).find(
       (domainConfig) => domainConfig.domain === domain,
     );
@@ -127,24 +62,27 @@ export class TacoConfigValidator {
   }
 
   /**
-   * Validate ritual ID (basic validation - positive number only)
-   * @param domain - Domain name (unused but kept for API compatibility)
-   * @param ritualId - Ritual ID to validate
-   * @returns {boolean} True if valid (positive number)
+   * Validate ritual ID (basic validation - positive integer or 0)
+   * @param {number} ritualId - Ritual ID to validate
+   * @returns {boolean} True if valid (positive integer or 0)
    */
-  static isValidRitualId(domain: DomainName, ritualId: number): boolean {
-    return typeof ritualId === 'number' && ritualId > 0;
+  static isValidRitualId(ritualId: number): boolean {
+    return (
+      typeof ritualId === 'number' &&
+      Number.isInteger(ritualId) &&
+      ritualId >= 0
+    );
   }
 
   /**
    * Validate provider compatibility with domain
-   * @param domain - Domain name
-   * @param provider - Provider to validate (viem PublicClient or ethers Provider)
+   * @param {DomainName} domain - Domain name
+   * @param {ProviderLike} provider - Provider to validate (ethers Provider or viem PublicClient)
    * @returns {Promise<boolean>} True if provider is valid for domain
    */
   static async isValidProvider(
     domain: DomainName,
-    provider: PublicClient | ethers.providers.Provider,
+    provider: ProviderLike,
   ): Promise<boolean> {
     let chainId: number;
 
@@ -155,25 +93,13 @@ export class TacoConfigValidator {
 
     // Try to detect provider type and get chain ID safely
     try {
-      // Check if it's a viem PublicClient (has getChainId method)
-      if (
-        'getChainId' in provider &&
-        typeof provider.getChainId === 'function'
-      ) {
+      if (isViemClient(provider)) {
         chainId = await (provider as PublicClient).getChainId();
-      }
-      // Check if it's an ethers Provider (has getNetwork method)
-      else if (
-        'getNetwork' in provider &&
-        typeof provider.getNetwork === 'function'
-      ) {
+      } else {
         const network = await (
           provider as ethers.providers.Provider
         ).getNetwork();
         chainId = network.chainId;
-      } else {
-        // Unknown provider type
-        return false;
       }
     } catch (error) {
       // Error getting chain ID
@@ -191,8 +117,15 @@ export class TacoConfigValidator {
 
   /**
    * Fast validation (everything except provider network checks)
-   * @param config - Configuration to validate
-   * @returns {ValidationResult} Validation result
+   *
+   * Performs synchronous validation of configuration including:
+   * - Domain name validation
+   * - Ritual ID validation to ensure it is a positive integer
+   * - Provider/signer presence validation
+   * - Chain compatibility check (if chain info is available synchronously)
+   *
+   * @param {TacoClientConfig} config - Configuration to validate
+   * @returns {ValidationResult} Validation result with isValid boolean and errors array
    */
   static validateFast(config: TacoClientConfig): ValidationResult {
     const errors: string[] = [];
@@ -209,14 +142,14 @@ export class TacoConfigValidator {
     // Validate ritual ID
     if (!config.ritualId) {
       errors.push('The property `ritualId` is required');
-    } else if (!this.isValidRitualId(config.domain, config.ritualId)) {
+    } else if (!this.isValidRitualId(config.ritualId)) {
       errors.push(
         `Invalid ritual ID: ${config.ritualId} for domain ${config.domain}`,
       );
     }
 
     // Validate blockchain client configuration
-    if ('viemClient' in config) {
+    if (isViemConfig(config)) {
       // Viem configuration
       if (!config.viemClient) {
         errors.push('viemClient is required for viem configuration');
@@ -224,7 +157,7 @@ export class TacoConfigValidator {
       if (!config.viemSignerAccount) {
         errors.push('viemSignerAccount is required for viem configuration');
       }
-    } else if ('ethersProvider' in config) {
+    } else if (isEthersConfig(config)) {
       // Ethers configuration
       if (!config.ethersProvider) {
         errors.push('ethersProvider is required for ethers configuration');
@@ -249,6 +182,12 @@ export class TacoConfigValidator {
 
   /**
    * Synchronous chain compatibility validation
+   *
+   * Validates provider chain compatibility with domain requirements using
+   * synchronously available chain information.
+   *
+   * @param {TacoClientConfig} config - Configuration to validate
+   * @returns {ValidationResult} Validation result
    * @private
    */
   private static validateChainCompatibility(
@@ -263,44 +202,34 @@ export class TacoConfigValidator {
       return { isValid: false, errors };
     }
 
-    // Check viem client chain compatibility
-    if ('viemClient' in config && config.viemClient) {
+    if (isViemConfig(config) && config.viemClient) {
+      // Note: If viemClient.chain is undefined, we skip synchronous validation
+      // Full validation with validateFull() will perform the network check
       const viemClient = config.viemClient as PublicClient;
       if (viemClient.chain && viemClient.chain.id !== expectedChainId) {
         errors.push(
           `Provider chain mismatch: viem client chain ID ${viemClient.chain.id} does not match domain '${config.domain}' (expected ${expectedChainId})`,
         );
       }
-    }
-
-    // Check ethers provider chain compatibility
-    if ('ethersProvider' in config && config.ethersProvider) {
-      // Note: _network is not public API, but it's the only synchronous way to check
-      // However, if the property `_network` was not available, no error will be thrown.
-      const ethersProvider = config.ethersProvider as unknown as {
-        _network?: { chainId: number };
-      };
-      if (
-        ethersProvider._network &&
-        ethersProvider._network.chainId !== expectedChainId
-      ) {
-        errors.push(
-          `Provider chain mismatch: ethers provider chain ID ${ethersProvider._network.chainId} does not match domain '${config.domain}' (expected ${expectedChainId})`,
-        );
-      }
-    }
+    } // No need to count for the other cases. The caller methods already handle them.
 
     return { isValid: errors.length === 0, errors };
   }
 
   /**
    * Full validation including async provider network checks
-   * @param config - Configuration to validate
-   * @returns {Promise<ValidationResult>} Validation result with provider validation
+   *
+   * Performs comprehensive validation including:
+   * - All fast validation checks
+   * - Async network calls to verify provider chain ID matches domain requirements
+   *
+   * Use this method when you need complete validation including network connectivity checks.
+   * For faster validation without network calls, use validateFast().
+   *
+   * @param {TacoClientConfig} config - Configuration to validate
+   * @returns {Promise<ValidationResult>} Promise resolving to validation result with isValid boolean and errors array
    */
-  static async validateFull(
-    config: TacoClientConfig,
-  ): Promise<ValidationResult> {
+  static async validate(config: TacoClientConfig): Promise<ValidationResult> {
     // First run fast validation
     const fastResult = this.validateFast(config);
     if (!fastResult.isValid) {
@@ -312,9 +241,9 @@ export class TacoConfigValidator {
     // Additional async provider validation
     let provider: PublicClient | ethers.providers.Provider | undefined;
 
-    if ('viemClient' in config) {
+    if (isViemConfig(config)) {
       provider = config.viemClient;
-    } else if ('ethersProvider' in config) {
+    } else if (isEthersConfig(config)) {
       provider = config.ethersProvider;
     }
 

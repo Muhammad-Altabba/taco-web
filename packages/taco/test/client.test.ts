@@ -1,6 +1,10 @@
-import type { ethers } from 'ethers';
-import { type LocalAccount, type PublicClient } from 'viem';
-import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import { DOMAIN_NAMES, DomainName } from '@nucypher/shared';
+import {
+  fakeProvider,
+  fakeViemAccount,
+  fakeViemPublicClient,
+} from '@nucypher/test-utils';
+import { beforeAll, beforeEach, describe, expect, it } from 'vitest';
 
 import {
   TacoClient,
@@ -8,43 +12,7 @@ import {
   type TacoClientEthersConfig,
   type TacoClientViemConfig,
 } from '../src';
-import {
-  type DomainName,
-  TacoConfigValidator,
-} from '../src/taco-config-validator';
-
-// Mock viem dependencies for testing
-const mockViemClient = {
-  getChainId: vi.fn().mockResolvedValue(80002),
-  call: vi.fn().mockResolvedValue('0x'),
-  getNetwork: vi
-    .fn()
-    .mockResolvedValue({ chainId: 80002, name: 'polygon-amoy' }),
-  readContract: vi.fn().mockResolvedValue('0x'),
-} as unknown as PublicClient;
-
-const mockViemAccount = {
-  address: '0x742d35Cc6632C0532c718F63b1a8D7d8a7fAd3b2',
-  signMessage: vi.fn().mockResolvedValue('0x'),
-  signTypedData: vi.fn().mockResolvedValue('0x'),
-} as unknown as LocalAccount;
-
-// Mock ethers dependencies for testing
-const mockEthersProvider = {
-  getNetwork: vi
-    .fn()
-    .mockResolvedValue({ name: 'polygon-amoy', chainId: 80002 }),
-  getBalance: vi.fn().mockResolvedValue('1000000000000000000'),
-  getCode: vi.fn().mockResolvedValue('0x'),
-} as unknown as ethers.providers.Provider;
-
-const mockEthersSigner = {
-  getAddress: vi
-    .fn()
-    .mockResolvedValue('0x742d35Cc6632C0532c718F63b1a8D7d8a7fAd3b2'),
-  signMessage: vi.fn().mockResolvedValue('0x'),
-  provider: mockEthersProvider,
-} as unknown as ethers.Signer;
+import { TacoConfigValidator } from '../src/client/config-validator';
 
 describe('TacoConfigValidator', () => {
   describe('Domain Management', () => {
@@ -54,38 +22,40 @@ describe('TacoConfigValidator', () => {
     });
 
     it.each([
-      ['tapir', true, 'valid testnet domain'],
-      ['lynx', true, 'valid devnet domain'],
-      ['mainnet', true, 'valid production domain'],
-      ['INVALID', false, 'invalid domain name'],
-      ['', false, 'empty domain name'],
-      ['testnet', false, 'legacy domain key (not domain name)'],
-    ])('should validate domain "%s" as %s (%s)', (domain, expected) => {
+      [DOMAIN_NAMES.TESTNET, 'valid testnet domain'],
+      [DOMAIN_NAMES.DEVNET, 'valid devnet domain'],
+      [DOMAIN_NAMES.MAINNET, 'valid production domain'],
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    ])('should validate domain "%s" as %s', (domain: DomainName, _: string) => {
+      expect(TacoConfigValidator.isValidDomain(domain)).toBe(true);
+    });
+
+    it.each([
+      ['INVALID', 'invalid domain name'],
+      ['', 'empty domain name'],
+      ['testnet', 'legacy domain key (not domain name)'],
+    ])('should validate domain "%s" as %s', (domain: string) => {
       expect(TacoConfigValidator.isValidDomain(domain as DomainName)).toBe(
-        expected,
+        false,
       );
     });
 
     it.each([
-      // Valid ritual IDs (any positive number)
-      ['lynx', 27, true, 'default devnet ritual ID'],
-      ['tapir', 6, true, 'default testnet ritual ID'],
-      ['mainnet', 42, true, 'custom mainnet ritual ID'],
-      ['lynx', 999, true, 'large ritual ID for devnet'],
-      ['tapir', 1, true, 'minimum valid ritual ID'],
-      ['mainnet', 100, true, 'typical mainnet ritual ID'],
-      // Invalid ritual IDs (zero and negative)
-      ['mainnet', 0, false, 'zero ritual ID'],
-      ['lynx', -1, false, 'negative ritual ID'],
-      ['tapir', -5, false, 'large negative ritual ID'],
-    ])(
-      `should validate with domain "%s" the ritual ID %d as %s (%s)`,
-      (domain, ritualId, expected) => {
-        expect(
-          TacoConfigValidator.isValidRitualId(domain as DomainName, ritualId),
-        ).toBe(expected);
-      },
-    );
+      [0, 'minimum valid ritual ID'],
+      [27, 'default devnet ritual ID'],
+      [6, 'default testnet ritual ID'],
+      [42, 'custom mainnet ritual ID'],
+      [999, 'large ritual ID for devnet'],
+    ])('should validate ritual ID %d (%s)', (ritualId: number) => {
+      expect(TacoConfigValidator.isValidRitualId(ritualId)).toBe(true);
+    });
+
+    it.each([
+      [-1, 'negative ritual ID'],
+      [5.4, 'floating point ritual ID'],
+    ])('should invalidate ritual ID %d (%s)', (ritualId: number) => {
+      expect(TacoConfigValidator.isValidRitualId(ritualId)).toBe(false);
+    });
   });
 
   describe('Fast Configuration Validation', () => {
@@ -93,8 +63,8 @@ describe('TacoConfigValidator', () => {
       const result = TacoConfigValidator.validateFast({
         domain: 'tapir',
         ritualId: 6,
-        viemClient: mockViemClient,
-        viemSignerAccount: mockViemAccount,
+        viemClient: fakeViemPublicClient(),
+        viemSignerAccount: fakeViemAccount(),
       });
 
       expect(result.isValid).toBe(true);
@@ -105,8 +75,8 @@ describe('TacoConfigValidator', () => {
       const result = TacoConfigValidator.validateFast({
         domain: 'INVALID_DOMAIN' as DomainName,
         ritualId: 999,
-        viemClient: mockViemClient,
-        viemSignerAccount: mockViemAccount,
+        viemClient: fakeViemPublicClient(),
+        viemSignerAccount: fakeViemAccount(),
       });
 
       expect(result.isValid).toBe(false);
@@ -116,8 +86,8 @@ describe('TacoConfigValidator', () => {
     it('should fail validation when domain is missing', () => {
       const result = TacoConfigValidator.validateFast({
         ritualId: 6,
-        viemClient: mockViemClient,
-        viemSignerAccount: mockViemAccount,
+        viemClient: fakeViemPublicClient(),
+        viemSignerAccount: fakeViemAccount(),
       } as TacoClientConfig);
 
       expect(result.isValid).toBe(false);
@@ -148,26 +118,29 @@ describe('TacoClient', () => {
     validViemConfig = {
       domain: 'tapir',
       ritualId: 6,
-      viemClient: mockViemClient,
-      viemSignerAccount: mockViemAccount,
+      viemClient: fakeViemPublicClient(),
+      viemSignerAccount: fakeViemAccount(),
     };
 
+    const ethersProvider = fakeProvider();
     validEthersConfig = {
       domain: 'tapir',
       ritualId: 6,
-      ethersProvider: mockEthersProvider,
-      ethersSigner: mockEthersSigner,
+      ethersProvider,
+      ethersSigner: ethersProvider.getSigner(),
     };
   });
 
   describe('Client Construction', () => {
-    it('should successfully create client with valid viem configuration', () => {
+    it('should successfully create client with valid viem configuration', async () => {
       const client = new TacoClient(validViemConfig);
+      await client.validateConfig();
       expect(client).toBeInstanceOf(TacoClient);
     });
 
-    it('should successfully create client with valid ethers configuration', () => {
+    it('should successfully create client with valid ethers configuration', async () => {
       const client = new TacoClient(validEthersConfig);
+      await client.validateConfig();
       expect(client).toBeInstanceOf(TacoClient);
     });
 
@@ -259,10 +232,12 @@ describe('TacoClient', () => {
           new TacoClient({
             domain: 'tapir',
             ritualId: 6,
-            viemClient: mockViemClient,
-            ethersProvider: mockEthersProvider,
+            viemClient: fakeViemPublicClient(),
+            ethersProvider: fakeProvider(),
           } as unknown as TacoClientConfig),
-      ).toThrow('viemSignerAccount is required for viem configuration');
+      ).toThrow(
+        'Invalid configuration: Configuration must include either viem objects (viemClient + viemSignerAccount) or ethers objects (ethersProvider + ethersSigner)',
+      );
     });
   });
 
@@ -357,13 +332,12 @@ describe('TacoClient', () => {
         description: 'correct ethers configuration',
       },
     ])('should pass full validation for $description', async ({ config }) => {
-      const result = await TacoConfigValidator.validateFull(config());
-      expect(result.isValid).toBe(true);
-      expect(result.errors).toHaveLength(0);
+      const result = TacoConfigValidator.validate(config());
+      expect(result).resolves.not.toThrow();
     });
 
     it('should detect and report missing blockchain dependencies', async () => {
-      const result = await TacoConfigValidator.validateFull({
+      const result = await TacoConfigValidator.validate({
         domain: 'tapir',
         ritualId: 6,
         // Missing blockchain objects
@@ -376,7 +350,7 @@ describe('TacoClient', () => {
     });
 
     it('should detect and report invalid domain in full validation', async () => {
-      const result = await TacoConfigValidator.validateFull({
+      const result = await TacoConfigValidator.validate({
         ...validViemConfig,
         domain: 'INVALID' as DomainName,
       });
@@ -393,8 +367,8 @@ describe('TacoClient', () => {
           new TacoClient({
             domain: 'tapir',
             ritualId: -5,
-            viemClient: mockViemClient,
-            viemSignerAccount: mockViemAccount,
+            viemClient: fakeViemPublicClient(),
+            viemSignerAccount: fakeViemAccount(),
           }),
       ).toThrow('Invalid ritual ID');
     });

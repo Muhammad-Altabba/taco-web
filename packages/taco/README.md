@@ -143,19 +143,13 @@ For detailed viem documentation, see [VIEM_SUPPORT.md](./VIEM_SUPPORT.md).
 
 For applications requiring multiple TACo operations or complex configuration management, the TACo SDK provides an optional object-oriented interface through the `TacoClient` class. This provides a stateful, higher-level abstraction over the functional API.
 
-### What is different from the functional API?
-
-- **Stateful Configuration**: Store domain, ritual ID, and other client configurations at instance level so there is less need to repeatedly pass some config parameters.
-- **Enhanced Validation**: Enhanced configuration validation and correction.
-- **Enhanced Type Safety**: More type strict for the domain name.
-
 The Object-Oriented API is fully backward compatible - you can use both APIs in
-the same application as needed. Except that the TacoClient has more validations
+the same application as needed. Except that the TacoClient has additional validations
 and hence throws some errors earlier with different error messages.
 
-NOTE: Using TacoClient is basically similar to using the functional API. And there is no
-specific recommendations on what to use. It is for the convenience of the
-developer to choose.
+NOTE: Using `TacoClient` is equivalent to using the functional API. 
+There are no specific recommendations on which approach to use. 
+Choose the one that best suits your development preferences.
 
 ### Basic Usage
 
@@ -177,7 +171,7 @@ const viemAccount = privateKeyToAccount('0x...');
 
 // Create TacoClient instance with domain constants
 const tacoClient = new TacoClient({
-  domain: DOMAIN_NAMES.TESTNET, // TacoDomains.TESTNET -> 'tapir'
+  domain: DOMAIN_NAMES.TESTNET, // TESTNET -> 'tapir'
   ritualId: 6,
   viemClient,
   viemAccount
@@ -203,9 +197,9 @@ TacoClient supports both viem and ethers.js configurations:
 ```typescript
 import { TacoClient, DOMAIN_NAMES } from '@nucypher/taco';
 
-// With viem (recommended)
+// With viem
 const tacoClientViem = new TacoClient({
-  domain: TacoDomains.TESTNET,
+  domain: DOMAIN_NAMES.TESTNET,
   ritualId: 6,
   viemClient,
   viemAccount
@@ -213,20 +207,12 @@ const tacoClientViem = new TacoClient({
 
 // With ethers.js
 const tacoClientEthers = new TacoClient({
-  domain: TacoDomains.TESTNET,
+  domain: DOMAIN_NAMES.TESTNET,
   ritualId: 6,
   ethersProvider,
   ethersSigner
 });
 ```
-
-### Backward Compatibility
-
-The TacoClient provides a higher-level interface while maintaining full backward compatibility:
-
-- **Zero Breaking Changes**: Existing functional API remains unchanged
-- **Optional Import**: OOP classes available as optional imports
-- **Interoperable**: Can use both APIs in the same application, if needed.
 
 ## Learn more
 

@@ -5,10 +5,12 @@
  * for configuring TacoClient instances with different blockchain client libraries (viem, ethers.js).
  */
 
-import { type PublicClient, type SignerAccount } from '@nucypher/shared';
+import {
+  DomainName,
+  type PublicClient,
+  type SignerAccount,
+} from '@nucypher/shared';
 import type { ethers } from 'ethers';
-
-import type { DomainName } from './taco-config-validator';
 
 /**
  * Base configuration for TacoClient
