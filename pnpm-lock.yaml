@@ -599,8 +599,6 @@ importers:
         specifier: ^2.0.0
         version: 2.37.8(bufferutil@4.0.9)(typescript@5.8.2)(utf-8-validate@5.0.10)(zod@3.24.2)
 
-  packages/shared/dist/es: {}
-
   packages/taco:
     dependencies:
       '@astronautlabs/jsonpath':
@@ -662,10 +660,6 @@ importers:
       '@nucypher/test-utils':
         specifier: workspace:*
         version: link:../test-utils
-
-  packages/taco-auth/dist/es: {}
-
-  packages/taco/dist/es: {}
 
   packages/test-utils:
     dependencies:

@@ -12,3 +12,10 @@ export {
 export * as conditions from './conditions';
 
 export { decrypt, encrypt, encryptWithPublicKey } from './taco';
+
+export {
+  TacoClient,
+  type TacoClientConfig,
+  type TacoClientEthersConfig,
+  type TacoClientViemConfig,
+} from './client';

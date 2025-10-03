@@ -139,6 +139,81 @@ const viemEncrypted = await encrypt(
 
 For detailed viem documentation, see [VIEM_SUPPORT.md](./VIEM_SUPPORT.md).
 
+## TacoClient - Object-Oriented Interface
+
+For applications requiring multiple TACo operations or complex configuration management, the TACo SDK provides an optional object-oriented interface through the `TacoClient` class. This provides a stateful, higher-level abstraction over the functional API.
+
+The Object-Oriented API is fully backward compatible - you can use both APIs in
+the same application as needed. Except that the TacoClient has additional validations
+and hence throws some errors earlier with different error messages.
+
+NOTE: Using `TacoClient` is equivalent to using the functional API. 
+There are no specific recommendations on which approach to use. 
+Choose the one that best suits your development preferences.
+
+### Basic Usage
+
+```typescript
+import { TacoClient, ConditionContext, DOMAIN_NAMES } from '@nucypher/taco';
+import { createPublicClient, http } from 'viem';
+import { privateKeyToAccount } from 'viem/accounts';
+import { polygonAmoy } from 'viem/chains';
+
+// Initialize TACo
+await initialize();
+
+// Set up viem client and account
+const viemClient = createPublicClient({
+  chain: polygonAmoy,
+  transport: http(),
+});
+const viemAccount = privateKeyToAccount('0x...');
+
+// Create TacoClient instance with domain constants
+const tacoClient = new TacoClient({
+  domain: DOMAIN_NAMES.TESTNET, // TESTNET -> 'tapir'
+  ritualId: 6,
+  viemClient,
+  viemAccount
+});
+
+// Encrypt data
+const messageKit = await tacoClient.encrypt('Hello, secret!', condition);
+
+// Decrypt
+const conditionContext = ConditionContext.fromMessageKit(messageKit);
+
+// if needed Add authentication for ":userAddress" in condition...
+
+const decryptedMessage = await tacoClient.decrypt(messageKit, conditionContext);
+// OR with encrypted bytes:
+// const decryptedMessage = await tacoClient.decrypt(messageKit.toBytes(), conditionContext);
+```
+
+### Dual Configuration Support
+
+TacoClient supports both viem and ethers.js configurations:
+
+```typescript
+import { TacoClient, DOMAIN_NAMES } from '@nucypher/taco';
+
+// With viem
+const tacoClientViem = new TacoClient({
+  domain: DOMAIN_NAMES.TESTNET,
+  ritualId: 6,
+  viemClient,
+  viemAccount
+});
+
+// With ethers.js
+const tacoClientEthers = new TacoClient({
+  domain: DOMAIN_NAMES.TESTNET,
+  ritualId: 6,
+  ethersProvider,
+  ethersSigner
+});
+```
+
 ## Learn more
 
 Please find developer documentation for
