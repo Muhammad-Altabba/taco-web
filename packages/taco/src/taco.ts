@@ -19,7 +19,6 @@ import {
   toTacoSigner,
 } from '@nucypher/shared';
 import { ethers } from 'ethers';
-import { keccak256 } from 'ethers/lib/utils';
 
 import { Condition } from './conditions/condition';
 import { ConditionExpression } from './conditions/condition-expr';
@@ -169,7 +168,7 @@ export async function encryptWithPublicKey(
     conditionExpr.toCoreCondition(),
   );
 
-  const headerHash = keccak256(ciphertext.header.toBytes());
+  const headerHash = ethers.utils.keccak256(ciphertext.header.toBytes());
   const authorization = await signer.signMessage(fromHexString(headerHash));
   const acp = new AccessControlPolicy(
     authenticatedData,

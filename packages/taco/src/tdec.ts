@@ -20,7 +20,6 @@ import {
   toBytes,
 } from '@nucypher/shared';
 import { ethers } from 'ethers';
-import { arrayify, keccak256 } from 'ethers/lib/utils';
 
 import { ConditionExpression } from './conditions/condition-expr';
 import { ConditionContext } from './conditions/context';
@@ -47,8 +46,10 @@ export const encryptMessage = async (
     conditions.toCoreCondition(),
   );
 
-  const headerHash = keccak256(ciphertext.header.toBytes());
-  const authorization = await authSigner.signMessage(arrayify(headerHash));
+  const headerHash = ethers.utils.keccak256(ciphertext.header.toBytes());
+  const authorization = await authSigner.signMessage(
+    ethers.utils.arrayify(headerHash),
+  );
   const acp = new AccessControlPolicy(
     authenticatedData,
     toBytes(authorization),
