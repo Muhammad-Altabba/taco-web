@@ -27,11 +27,12 @@
     "dist"
   ],
   "scripts": {
-    "prebuild": "pnpm clean",
+    "prebuild": "pnpm clean && pnpm ensure-es-compatible-imports",
     "build": "pnpm build:es && pnpm build:cjs",
     "build:cjs": "tsc --build ./tsconfig.cjs.json --verbose",
     "build:es": "tsc --build ./tsconfig.es.json --verbose",
     "clean": "rm -rf dist",
+    "ensure-es-compatible-imports": "pnpm tsx ../../scripts/ensure-es-compatible-imports.ts",
     "exports:lint": "ts-unused-exports tsconfig.json --ignoreFiles src/index.ts",
     "lint": "eslint --ext .ts src test",
     "lint:fix": "pnpm lint --fix",
