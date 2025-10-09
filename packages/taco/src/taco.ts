@@ -19,13 +19,12 @@ import {
   toTacoSigner,
 } from '@nucypher/shared';
 import { ethers } from 'ethers';
-import { keccak256 } from 'ethers/lib/utils';
 
-import { Condition } from './conditions/condition';
-import { ConditionExpression } from './conditions/condition-expr';
-import { ConditionContext } from './conditions/context';
-import { DkgClient } from './dkg';
-import { retrieveAndDecrypt } from './tdec';
+import { ConditionExpression } from './conditions/condition-expr.js';
+import { Condition } from './conditions/condition.js';
+import { ConditionContext } from './conditions/context/index.js';
+import { DkgClient } from './dkg.js';
+import { retrieveAndDecrypt } from './tdec.js';
 
 /**
  * Encrypts a message gated by TACo Conditions using an ethers.js `Provider` and `Signer`.
@@ -169,7 +168,7 @@ export async function encryptWithPublicKey(
     conditionExpr.toCoreCondition(),
   );
 
-  const headerHash = keccak256(ciphertext.header.toBytes());
+  const headerHash = ethers.utils.keccak256(ciphertext.header.toBytes());
   const authorization = await signer.signMessage(fromHexString(headerHash));
   const acp = new AccessControlPolicy(
     authenticatedData,
