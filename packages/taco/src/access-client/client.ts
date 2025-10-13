@@ -1,5 +1,5 @@
 /**
- * TacoClient - Object-Oriented Interface for TACo Operations
+ * AccessClient - Object-Oriented Interface for TACo Operations
  *
  * Provides a higher-level, client-oriented abstraction over the functional TACo API.
  * This complements the existing functional API and caters to developers who prefer
@@ -16,15 +16,15 @@ import { Condition } from '../conditions/condition.js';
 import { ConditionContext } from '../conditions/context/index.js';
 import { decrypt, encrypt, encryptWithPublicKey } from '../taco.js';
 
+import { AccessConfigValidator } from './config-validator.js';
 import {
-  type TacoClientConfig,
-  type TacoClientEthersConfig,
-  type TacoClientViemConfig,
-} from './client-config.js';
-import { TacoConfigValidator } from './config-validator.js';
+  type AccessClientConfig,
+  type AccessClientEthersConfig,
+  type AccessClientViemConfig,
+} from './config.js';
 
 /**
- * TacoClient provides an object-oriented interface for TACo operations
+ * AccessClient provides an object-oriented interface for TACo operations
  *
  * This class encapsulates TACo configuration and provides simplified methods
  * for encryption and decryption operations. It handles configuration validation,
@@ -32,7 +32,7 @@ import { TacoConfigValidator } from './config-validator.js';
  *
  * @example Using with viem:
  * ```typescript
- * import { TacoClient, DOMAIN_NAMES } from '@nucypher/taco';
+ * import { AccessClient, DOMAIN_NAMES } from '@nucypher/taco';
  * import { createPublicClient, http } from 'viem';
  * import { polygonAmoy } from 'viem/chains';
  * import { privateKeyToAccount } from 'viem/accounts';
@@ -44,8 +44,8 @@ import { TacoConfigValidator } from './config-validator.js';
  * });
  * const viemAccount = privateKeyToAccount('0x...');
  *
- * // Create TacoClient - WASM initializes automatically
- * const tacoClient = new TacoClient({
+ * // Create AccessClient - WASM initializes automatically
+ * const accessClient = new AccessClient({
  *   domain: DOMAIN_NAMES.TESTNET, // 'tapir'
  *   ritualId: 6,
  *   viemClient,
@@ -53,21 +53,21 @@ import { TacoConfigValidator } from './config-validator.js';
  * });
  *
  * // Operations wait for initialization automatically
- * const messageKit = await tacoClient.encrypt('Hello, secret!', condition);
- * const decrypted = await tacoClient.decrypt(messageKit, conditionContext);
+ * const messageKit = await accessClient.encrypt('Hello, secret!', condition);
+ * const decrypted = await accessClient.decrypt(messageKit, conditionContext);
  * ```
  *
  * @example Using with ethers.js:
  * ```typescript
- * import { TacoClient, DOMAIN_NAMES } from '@nucypher/taco';
+ * import { AccessClient, DOMAIN_NAMES } from '@nucypher/taco';
  * import { ethers } from 'ethers';
  *
  * // Create ethers provider and signer
  * const ethersProvider = new ethers.providers.JsonRpcProvider('https://rpc-amoy.polygon.technology');
  * const ethersSigner = new ethers.Wallet('0x...', ethersProvider);
  *
- * // Create TacoClient - WASM initializes automatically
- * const tacoClient = new TacoClient({
+ * // Create AccessClient - WASM initializes automatically
+ * const accessClient = new AccessClient({
  *   domain: DOMAIN_NAMES.TESTNET,
  *   ritualId: 6,
  *   ethersProvider,
@@ -75,18 +75,18 @@ import { TacoConfigValidator } from './config-validator.js';
  * });
  *
  * // Operations are safe and wait for readiness
- * const messageKit = await tacoClient.encrypt('Hello, secret!', condition);
- * const decrypted = await tacoClient.decrypt(messageKit, conditionContext);
+ * const messageKit = await accessClient.encrypt('Hello, secret!', condition);
+ * const decrypted = await accessClient.decrypt(messageKit, conditionContext);
  * ```
  */
-export class TacoClient {
-  private config: TacoClientConfig;
+export class AccessClient {
+  private config: AccessClientConfig;
   private static initializationPromise: Promise<void>;
 
   /**
    * Initialize TACo WASM globally (singleton pattern)
    *
-   * This method ensures TACo WASM is initialized exactly once across all TacoClient instances.
+   * This method ensures TACo WASM is initialized exactly once across all AccessClient instances.
    * Initialization happens automatically when creating clients or calling operations, but you can
    * call this explicitly for performance optimization or error handling.
    *
@@ -95,19 +95,19 @@ export class TacoClient {
    * @example
    * ```typescript
    * // Optional: Pre-initialize for better performance
-   * await TacoClient.initialize();
+   * await AccessClient.initialize();
    *
-   * // All TacoClient instances share the same initialization
-   * const client1 = new TacoClient(config1);
-   * const client2 = new TacoClient(config2);
+   * // All AccessClient instances share the same initialization
+   * const client1 = new AccessClient(config1);
+   * const client2 = new AccessClient(config2);
    *
    * // Operations automatically wait for initialization
    * const encrypted = await client1.encrypt(data, condition);
    * ```
    */
   static async initialize(): Promise<void> {
-    if (!TacoClient.initializationPromise) {
-      TacoClient.initializationPromise = (async () => {
+    if (!AccessClient.initializationPromise) {
+      AccessClient.initializationPromise = (async () => {
         try {
           await initialize();
         } catch (error) {
@@ -116,25 +116,25 @@ export class TacoClient {
         }
       })();
     }
-    return TacoClient.initializationPromise;
+    return AccessClient.initializationPromise;
   }
 
   /**
-   * Create a new TacoClient instance
+   * Create a new AccessClient instance
    *
-   * @param {TacoClientConfig} config - Configuration for the TacoClient
+   * @param {AccessClientConfig} config - Configuration for the AccessClient
    * @throws {Error} If configuration is invalid
    */
-  constructor(config: TacoClientConfig) {
-    // Validate configuration using TacoConfig
-    const result = TacoConfigValidator.validateFast(config);
+  constructor(config: AccessClientConfig) {
+    // Validate configuration using AccessConfig
+    const result = AccessConfigValidator.validateFast(config);
     if (!result.isValid) {
       throw new Error(`Invalid configuration: ${result.errors.join(', ')}`);
     }
 
     this.config = config;
 
-    TacoClient.initialize();
+    AccessClient.initialize();
   }
 
   /**
@@ -151,7 +151,7 @@ export class TacoClient {
    * @example
    * ```typescript
    * try {
-   *   await tacoClient.validateConfig();
+   *   await accessClient.validateConfig();
    *   console.log('Configuration is valid.');
    * } catch (error) {
    *   console.error('Configuration validation failed:', error.message);
@@ -159,7 +159,7 @@ export class TacoClient {
    * ```
    */
   async validateConfig(): Promise<void> {
-    const validationResult = await TacoConfigValidator.validate(this.config);
+    const validationResult = await AccessConfigValidator.validate(this.config);
     if (!validationResult.isValid) {
       throw new Error(
         `Invalid configuration: ${validationResult.errors.join(', ')}`,
@@ -177,24 +177,24 @@ export class TacoClient {
    *
    * @example
    * ```typescript
-   * const messageKit = await tacoClient.encrypt('Hello, secret!', condition);
+   * const messageKit = await accessClient.encrypt('Hello, secret!', condition);
    * ```
    */
   async encrypt(
     data: string | Uint8Array,
     accessCondition: Condition,
   ): Promise<ThresholdMessageKit> {
-    await TacoClient.initialize();
+    await AccessClient.initialize();
 
     const messageKit = await encrypt(
-      (this.config as TacoClientEthersConfig).ethersProvider ||
-        (this.config as TacoClientViemConfig).viemClient,
+      (this.config as AccessClientEthersConfig).ethersProvider ||
+        (this.config as AccessClientViemConfig).viemClient,
       this.config.domain,
       data,
       accessCondition,
       this.config.ritualId,
-      (this.config as TacoClientEthersConfig).ethersSigner ||
-        (this.config as TacoClientViemConfig).viemSignerAccount,
+      (this.config as AccessClientEthersConfig).ethersSigner ||
+        (this.config as AccessClientViemConfig).viemSignerAccount,
     );
 
     return messageKit;
@@ -218,7 +218,7 @@ export class TacoClient {
    * const dkgPublicKey = await getDkgPublicKey(domain, ritualId);
    *
    * // Encrypt offline using the public key
-   * const messageKit = await tacoClient.encryptWithPublicKey('Hello, secret!', condition, dkgPublicKey);
+   * const messageKit = await accessClient.encryptWithPublicKey('Hello, secret!', condition, dkgPublicKey);
    * ```
    */
   async encryptWithPublicKey(
@@ -226,14 +226,14 @@ export class TacoClient {
     accessCondition: Condition,
     dkgPublicKey: DkgPublicKey,
   ): Promise<ThresholdMessageKit> {
-    await TacoClient.initialize();
+    await AccessClient.initialize();
 
     const messageKit = await encryptWithPublicKey(
       data,
       accessCondition,
       dkgPublicKey,
-      (this.config as TacoClientEthersConfig).ethersSigner ||
-        (this.config as TacoClientViemConfig).viemSignerAccount,
+      (this.config as AccessClientEthersConfig).ethersSigner ||
+        (this.config as AccessClientViemConfig).viemSignerAccount,
     );
 
     return messageKit;
@@ -250,17 +250,17 @@ export class TacoClient {
    * @example
    * ```typescript
    * // With messageKit
-   * const decrypted = await tacoClient.decrypt(messageKit, conditionContext);
+   * const decrypted = await accessClient.decrypt(messageKit, conditionContext);
    *
    * // With encrypted bytes
-   * const decrypted = await tacoClient.decrypt(encryptedBytes, conditionContext);
+   * const decrypted = await accessClient.decrypt(encryptedBytes, conditionContext);
    * ```
    */
   async decrypt(
     encryptedData: ThresholdMessageKit | Uint8Array,
     conditionContext?: ConditionContext,
   ): Promise<Uint8Array> {
-    await TacoClient.initialize();
+    await AccessClient.initialize();
 
     // Handle both messageKit and encrypted bytes
     const messageKit =
@@ -269,8 +269,8 @@ export class TacoClient {
         : ThresholdMessageKit.fromBytes(encryptedData);
 
     const decrypted = await decrypt(
-      (this.config as TacoClientEthersConfig).ethersProvider ||
-        (this.config as TacoClientViemConfig).viemClient,
+      (this.config as AccessClientEthersConfig).ethersProvider ||
+        (this.config as AccessClientViemConfig).viemClient,
       this.config.domain,
       messageKit,
       conditionContext,
@@ -283,9 +283,9 @@ export class TacoClient {
   /**
    * Get current client configuration
    *
-   * @returns {Readonly<TacoClientConfig>} Client configuration
+   * @returns {Readonly<AccessClientConfig>} Client configuration
    */
-  getConfig(): Readonly<TacoClientConfig> {
+  getConfig(): Readonly<AccessClientConfig> {
     return Object.freeze({ ...this.config });
   }
 }

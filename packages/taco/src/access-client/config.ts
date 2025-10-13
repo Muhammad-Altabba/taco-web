@@ -1,8 +1,8 @@
 /**
- * TacoClient configuration types and utilities
+ * AccessClient configuration types and utilities
  *
  * This module contains all configuration interfaces, type definitions, and utility functions
- * for configuring TacoClient instances with different blockchain client libraries (viem, ethers.js).
+ * for configuring AccessClient instances with different blockchain client libraries (viem, ethers.js).
  */
 
 import {
@@ -13,9 +13,9 @@ import {
 import type { ethers } from 'ethers';
 
 /**
- * Base configuration for TacoClient
+ * Base configuration for AccessClient
  */
-export interface TacoClientBaseConfig {
+interface AccessClientBaseConfig {
   /** TACo domain name (e.g., 'lynx', 'tapir', 'mainnet') */
   domain: DomainName;
   /** Ritual ID for the TACo operations */
@@ -25,9 +25,9 @@ export interface TacoClientBaseConfig {
 }
 
 /**
- * Viem configuration for TacoClient
+ * Viem configuration for AccessClient
  */
-export interface TacoClientViemConfig extends TacoClientBaseConfig {
+export interface AccessClientViemConfig extends AccessClientBaseConfig {
   /** Viem PublicClient for blockchain operations */
   viemClient: PublicClient;
   /** Viem SignerAccount for signing operations */
@@ -35,9 +35,9 @@ export interface TacoClientViemConfig extends TacoClientBaseConfig {
 }
 
 /**
- * Ethers configuration for TacoClient
+ * Ethers configuration for AccessClient
  */
-export interface TacoClientEthersConfig extends TacoClientBaseConfig {
+export interface AccessClientEthersConfig extends AccessClientBaseConfig {
   /** Ethers Provider for blockchain operations */
   ethersProvider: ethers.providers.Provider;
   /** Ethers Signer for signing operations */
@@ -45,28 +45,30 @@ export interface TacoClientEthersConfig extends TacoClientBaseConfig {
 }
 
 /**
- * Union type for TacoClient configuration - supports both viem and ethers.js
+ * Union type for AccessClient configuration - supports both viem and ethers.js
  */
-export type TacoClientConfig = TacoClientViemConfig | TacoClientEthersConfig;
+export type AccessClientConfig =
+  | AccessClientViemConfig
+  | AccessClientEthersConfig;
 
 /**
  * Type guard to check if config is viem-based
- * @param config - TacoClient configuration to check
+ * @param config - AccessClient configuration to check
  * @returns True if the configuration is for viem client
  */
 export function isViemConfig(
-  config: TacoClientConfig,
-): config is TacoClientViemConfig {
+  config: AccessClientConfig,
+): config is AccessClientViemConfig {
   return 'viemClient' in config && 'viemSignerAccount' in config;
 }
 
 /**
  * Type guard to check if config is ethers-based
- * @param config - TacoClient configuration to check
+ * @param config - AccessClient configuration to check
  * @returns True if the configuration is for ethers client
  */
 export function isEthersConfig(
-  config: TacoClientConfig,
-): config is TacoClientEthersConfig {
+  config: AccessClientConfig,
+): config is AccessClientEthersConfig {
   return 'ethersProvider' in config && 'ethersSigner' in config;
 }

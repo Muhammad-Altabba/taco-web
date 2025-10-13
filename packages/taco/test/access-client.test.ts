@@ -7,17 +7,17 @@ import {
 import { beforeAll, beforeEach, describe, expect, it } from 'vitest';
 
 import {
-  TacoClient,
-  type TacoClientConfig,
-  type TacoClientEthersConfig,
-  type TacoClientViemConfig,
+  AccessClient,
+  type AccessClientConfig,
+  type AccessClientEthersConfig,
+  type AccessClientViemConfig,
 } from '../src';
-import { TacoConfigValidator } from '../src/client/config-validator';
+import { AccessConfigValidator } from '../src/access-client/config-validator';
 
-describe('TacoConfigValidator', () => {
+describe('AccessConfigValidator', () => {
   describe('Domain Management', () => {
     it('should return all supported domain names', () => {
-      const domains = TacoConfigValidator.getSupportedDomains();
+      const domains = AccessConfigValidator.getSupportedDomains();
       expect(domains).toEqual(['lynx', 'tapir', 'mainnet']);
     });
 
@@ -27,7 +27,7 @@ describe('TacoConfigValidator', () => {
       [DOMAIN_NAMES.MAINNET, 'valid production domain'],
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     ])('should validate domain "%s" as %s', (domain: DomainName, _: string) => {
-      expect(TacoConfigValidator.isValidDomain(domain)).toBe(true);
+      expect(AccessConfigValidator.isValidDomain(domain)).toBe(true);
     });
 
     it.each([
@@ -35,7 +35,7 @@ describe('TacoConfigValidator', () => {
       ['', 'empty domain name'],
       ['testnet', 'legacy domain key (not domain name)'],
     ])('should validate domain "%s" as %s', (domain: string) => {
-      expect(TacoConfigValidator.isValidDomain(domain as DomainName)).toBe(
+      expect(AccessConfigValidator.isValidDomain(domain as DomainName)).toBe(
         false,
       );
     });
@@ -47,20 +47,20 @@ describe('TacoConfigValidator', () => {
       [42, 'custom mainnet ritual ID'],
       [999, 'large ritual ID for devnet'],
     ])('should validate ritual ID %d (%s)', (ritualId: number) => {
-      expect(TacoConfigValidator.isValidRitualId(ritualId)).toBe(true);
+      expect(AccessConfigValidator.isValidRitualId(ritualId)).toBe(true);
     });
 
     it.each([
       [-1, 'negative ritual ID'],
       [5.4, 'floating point ritual ID'],
     ])('should invalidate ritual ID %d (%s)', (ritualId: number) => {
-      expect(TacoConfigValidator.isValidRitualId(ritualId)).toBe(false);
+      expect(AccessConfigValidator.isValidRitualId(ritualId)).toBe(false);
     });
   });
 
   describe('Fast Configuration Validation', () => {
-    it('should pass validation for valid viem configuration', () => {
-      const result = TacoConfigValidator.validateFast({
+    it('should create AccessClient with viem configuration', () => {
+      const result = AccessConfigValidator.validateFast({
         domain: 'tapir',
         ritualId: 6,
         viemClient: fakeViemPublicClient(),
@@ -72,7 +72,7 @@ describe('TacoConfigValidator', () => {
     });
 
     it('should fail validation for invalid domain configuration', () => {
-      const result = TacoConfigValidator.validateFast({
+      const result = AccessConfigValidator.validateFast({
         domain: 'INVALID_DOMAIN' as DomainName,
         ritualId: 999,
         viemClient: fakeViemPublicClient(),
@@ -84,11 +84,11 @@ describe('TacoConfigValidator', () => {
     });
 
     it('should fail validation when domain is missing', () => {
-      const result = TacoConfigValidator.validateFast({
+      const result = AccessConfigValidator.validateFast({
         ritualId: 6,
         viemClient: fakeViemPublicClient(),
         viemSignerAccount: fakeViemAccount(),
-      } as TacoClientConfig);
+      } as AccessClientConfig);
 
       expect(result.isValid).toBe(false);
       expect(result.errors).toContain('The property `domain` is required');
@@ -96,23 +96,25 @@ describe('TacoConfigValidator', () => {
   });
 });
 
-// Test helpers for accessing TacoClient's private static members
-const getTacoClientStatics = () =>
-  TacoClient as unknown as { initializationPromise: Promise<void> | undefined };
+// Test helpers for accessing AccessClient's private static members
+const getAccessClientStatics = () =>
+  AccessClient as unknown as {
+    initializationPromise: Promise<void> | undefined;
+  };
 
-const resetTacoClientStatics = () => {
-  delete (TacoClient as unknown as { initializationPromise?: Promise<void> })
+const resetAccessClientStatics = () => {
+  delete (AccessClient as unknown as { initializationPromise?: Promise<void> })
     .initializationPromise;
 };
 
-describe('TacoClient', () => {
+describe('AccessClient', () => {
   beforeAll(async () => {
-    // Ensure TacoClient is initialized before running tests
-    await TacoClient.initialize();
+    // Ensure AccessClient is initialized before running tests
+    await AccessClient.initialize();
   });
 
-  let validViemConfig: TacoClientViemConfig;
-  let validEthersConfig: TacoClientEthersConfig;
+  let validViemConfig: AccessClientViemConfig;
+  let validEthersConfig: AccessClientEthersConfig;
 
   beforeEach(() => {
     validViemConfig = {
@@ -133,21 +135,21 @@ describe('TacoClient', () => {
 
   describe('Client Construction', () => {
     it('should successfully create client with valid viem configuration', async () => {
-      const client = new TacoClient(validViemConfig);
+      const client = new AccessClient(validViemConfig);
       await client.validateConfig();
-      expect(client).toBeInstanceOf(TacoClient);
+      expect(client).toBeInstanceOf(AccessClient);
     });
 
     it('should successfully create client with valid ethers configuration', async () => {
-      const client = new TacoClient(validEthersConfig);
+      const client = new AccessClient(validEthersConfig);
       await client.validateConfig();
-      expect(client).toBeInstanceOf(TacoClient);
+      expect(client).toBeInstanceOf(AccessClient);
     });
 
     it('should throw error for invalid domain name', () => {
       expect(
         () =>
-          new TacoClient({
+          new AccessClient({
             ...validViemConfig,
             domain: 'INVALID' as DomainName,
           }),
@@ -157,7 +159,7 @@ describe('TacoClient', () => {
     it('should throw error for invalid ritual ID', () => {
       expect(
         () =>
-          new TacoClient({
+          new AccessClient({
             ...validViemConfig,
             ritualId: -1,
           }),
@@ -220,21 +222,21 @@ describe('TacoClient', () => {
           baseConfig === 'viem' ? validViemConfig : validEthersConfig;
         const invalidConfig = { ...baseConfigObject, ...configModifications };
 
-        expect(() => new TacoClient(invalidConfig as TacoClientConfig)).toThrow(
-          expectedError,
-        );
+        expect(
+          () => new AccessClient(invalidConfig as AccessClientConfig),
+        ).toThrow(expectedError);
       },
     );
 
     it('should throw error for mixed/invalid configuration types', () => {
       expect(
         () =>
-          new TacoClient({
+          new AccessClient({
             domain: 'tapir',
             ritualId: 6,
             viemClient: fakeViemPublicClient(),
             ethersProvider: fakeProvider(),
-          } as unknown as TacoClientConfig),
+          } as unknown as AccessClientConfig),
       ).toThrow(
         'Invalid configuration: Configuration must include either viem objects (viemClient + viemSignerAccount) or ethers objects (ethersProvider + ethersSigner)',
       );
@@ -258,7 +260,7 @@ describe('TacoClient', () => {
     ])(
       'should return readonly configuration object for $description',
       ({ config, expectedProperties }) => {
-        const client = new TacoClient(config());
+        const client = new AccessClient(config());
         const clientConfig = client.getConfig();
 
         // Verify common properties
@@ -279,42 +281,42 @@ describe('TacoClient', () => {
   });
 
   describe('Initialization Lifecycle', () => {
-    it('should trigger automatic TACo initialization on client construction', async () => {
+    it('should trigger automatic AccessClient initialization on client construction', async () => {
       // Reset static initialization state to verify automatic initialization
-      // occurs when TacoClient constructor is called
-      resetTacoClientStatics();
+      // occurs when AccessClient constructor is called
+      resetAccessClientStatics();
 
-      new TacoClient(validViemConfig);
+      new AccessClient(validViemConfig);
 
       // Initialization should be triggered by constructor
-      expect(getTacoClientStatics().initializationPromise).toBeDefined();
+      expect(getAccessClientStatics().initializationPromise).toBeDefined();
     });
 
-    it('should share single initialization promise across multiple client instances', async () => {
-      new TacoClient(validViemConfig);
-      new TacoClient({
+    it('should share initialization across multiple AccessClient instances', async () => {
+      new AccessClient(validViemConfig);
+      new AccessClient({
         ...validViemConfig,
         ritualId: 27, // Different ritual ID
       });
 
       // Both clients should share the same initialization promise
-      const initPromise1 = getTacoClientStatics().initializationPromise;
-      const initPromise2 = getTacoClientStatics().initializationPromise;
+      const initPromise1 = getAccessClientStatics().initializationPromise;
+      const initPromise2 = getAccessClientStatics().initializationPromise;
 
       expect(initPromise1).toBe(initPromise2);
       expect(initPromise1).toBeDefined();
     });
 
     it('should provide static initialize method with proper promise handling', async () => {
-      // Verify TacoClient.initialize() method exists and returns a promise
-      const initPromise = TacoClient.initialize();
+      // Verify AccessClient.initialize() method exists and returns a promise
+      const initPromise = AccessClient.initialize();
       expect(initPromise).toBeInstanceOf(Promise);
 
       // Wait for initialization to complete
       await initPromise;
 
       // Verify that repeated calls return the same promise (singleton pattern)
-      const initPromise2 = TacoClient.initialize();
+      const initPromise2 = AccessClient.initialize();
       expect(initPromise2).toBeInstanceOf(Promise);
     });
   });
@@ -332,16 +334,16 @@ describe('TacoClient', () => {
         description: 'correct ethers configuration',
       },
     ])('should pass full validation for $description', async ({ config }) => {
-      const result = TacoConfigValidator.validate(config());
+      const result = AccessConfigValidator.validate(config());
       expect(result).resolves.not.toThrow();
     });
 
     it('should detect and report missing blockchain dependencies', async () => {
-      const result = await TacoConfigValidator.validate({
+      const result = await AccessConfigValidator.validate({
         domain: 'tapir',
         ritualId: 6,
         // Missing blockchain objects
-      } as unknown as TacoClientConfig);
+      } as unknown as AccessClientConfig);
 
       expect(result.isValid).toBe(false);
       expect(result.errors).toContain(
@@ -350,7 +352,7 @@ describe('TacoClient', () => {
     });
 
     it('should detect and report invalid domain in full validation', async () => {
-      const result = await TacoConfigValidator.validate({
+      const result = await AccessConfigValidator.validate({
         ...validViemConfig,
         domain: 'INVALID' as DomainName,
       });
@@ -364,7 +366,7 @@ describe('TacoClient', () => {
     it('should detect and report invalid ritual ID during construction', async () => {
       expect(
         () =>
-          new TacoClient({
+          new AccessClient({
             domain: 'tapir',
             ritualId: -5,
             viemClient: fakeViemPublicClient(),
@@ -376,7 +378,7 @@ describe('TacoClient', () => {
 
   describe('Domain Support', () => {
     it('should provide domain name via getConfig method', () => {
-      const client = new TacoClient(validViemConfig);
+      const client = new AccessClient(validViemConfig);
       const config = client.getConfig();
 
       expect(config.domain).toBe('tapir');
