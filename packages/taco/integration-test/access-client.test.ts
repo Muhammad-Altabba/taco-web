@@ -161,20 +161,20 @@ describe.skipIf(!process.env.RUNNING_IN_CI)(
         const condition = createTestCondition();
 
         // Encrypt the message
-        const encrypted = await accessClient.encrypt(message, condition);
-        expect(encrypted).toBeInstanceOf(ThresholdMessageKit);
-        expect(encrypted.toBytes()).toBeInstanceOf(Uint8Array);
+        const messageKit = await accessClient.encrypt(message, condition);
+        expect(messageKit).toBeInstanceOf(ThresholdMessageKit);
+        expect(messageKit.toBytes()).toBeInstanceOf(Uint8Array);
 
         // Setup condition context for decryption
         const conditionContext = await setupConditionContext(
-          encrypted,
+          messageKit,
           objects,
           consumerSigner,
         );
 
         // Test decryption with Uint8Array input
         const decryptedBytes = await accessClient.decrypt(
-          encrypted.toBytes(),
+          messageKit.toBytes(),
           conditionContext,
         );
         const decryptedMessageString = fromBytes(decryptedBytes);
@@ -182,7 +182,7 @@ describe.skipIf(!process.env.RUNNING_IN_CI)(
 
         // Test decryption with MessageKit object input
         const decryptedBytes2 = await accessClient.decrypt(
-          encrypted,
+          messageKit,
           conditionContext,
         );
         const decryptedMessageString2 = fromBytes(decryptedBytes2);
@@ -211,23 +211,23 @@ describe.skipIf(!process.env.RUNNING_IN_CI)(
         expect(dkgPublicKey).toBeDefined();
 
         // Perform offline encryption with DKG public key
-        const encrypted = await accessClient.encryptWithPublicKey(
+        const messageKit = await accessClient.encryptWithPublicKey(
           message,
           condition,
           dkgPublicKey,
         );
-        expect(encrypted).toBeInstanceOf(ThresholdMessageKit);
+        expect(messageKit).toBeInstanceOf(ThresholdMessageKit);
 
         // Setup condition context with consumer signer for decryption
         const conditionContext = await setupConditionContext(
-          encrypted,
+          messageKit,
           objects,
           consumerSigner,
         );
 
         // Decrypt and verify
         const decryptedBytes = await accessClient.decrypt(
-          encrypted,
+          messageKit,
           conditionContext,
         );
         const decryptedMessageString = fromBytes(decryptedBytes);

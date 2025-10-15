@@ -16,8 +16,8 @@ import type { PublicClient } from 'viem';
 
 import {
   type AccessClientConfig,
-  isEthersConfig,
-  isViemConfig,
+  isEthersAccessClientConfig,
+  isViemAccessClientConfig,
 } from './index.js';
 
 /**
@@ -153,7 +153,7 @@ export class AccessConfigValidator {
     }
 
     // Validate blockchain client configuration
-    if (isViemConfig(config)) {
+    if (isViemAccessClientConfig(config)) {
       // Viem configuration
       if (!config.viemClient) {
         errors.push('viemClient is required for viem configuration');
@@ -161,7 +161,7 @@ export class AccessConfigValidator {
       if (!config.viemSignerAccount) {
         errors.push('viemSignerAccount is required for viem configuration');
       }
-    } else if (isEthersConfig(config)) {
+    } else if (isEthersAccessClientConfig(config)) {
       // Ethers configuration
       if (!config.ethersProvider) {
         errors.push('ethersProvider is required for ethers configuration');
@@ -206,7 +206,7 @@ export class AccessConfigValidator {
       return { isValid: false, errors };
     }
 
-    if (isViemConfig(config) && config.viemClient) {
+    if (isViemAccessClientConfig(config) && config.viemClient) {
       // Note: If viemClient.chain is undefined, we skip synchronous validation
       // Full validation with validateFull() will perform the network check
       const viemClient = config.viemClient as PublicClient;
@@ -245,9 +245,9 @@ export class AccessConfigValidator {
     // Additional async provider validation
     let provider: PublicClient | ethers.providers.Provider | undefined;
 
-    if (isViemConfig(config)) {
+    if (isViemAccessClientConfig(config)) {
       provider = config.viemClient;
-    } else if (isEthersConfig(config)) {
+    } else if (isEthersAccessClientConfig(config)) {
       provider = config.ethersProvider;
     }
 

@@ -1,11 +1,3 @@
-/**
- * AccessClient - Object-Oriented Interface for TACo Operations
- *
- * Provides a higher-level, client-oriented abstraction over the functional TACo API.
- * This complements the existing functional API and caters to developers who prefer
- * class-based architectures.
- */
-
 import {
   DkgPublicKey,
   initialize,
@@ -24,9 +16,9 @@ import {
 } from './config.js';
 
 /**
- * AccessClient provides an object-oriented interface for TACo operations
+ * AccessClient provides an object-oriented interface for TACo cryptographic operations
  *
- * This class encapsulates TACo configuration and provides simplified methods
+ * This class encapsulates TACo access-control configuration and provides simplified methods
  * for encryption and decryption operations. It handles configuration validation,
  * automatic WASM initialization, and provides enhanced error messages.
  *

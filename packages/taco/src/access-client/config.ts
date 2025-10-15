@@ -54,9 +54,9 @@ export type AccessClientConfig =
 /**
  * Type guard to check if config is viem-based
  * @param config - AccessClient configuration to check
- * @returns True if the configuration is for viem client
+ * @returns true if the configuration is for viem client
  */
-export function isViemConfig(
+export function isViemAccessClientConfig(
   config: AccessClientConfig,
 ): config is AccessClientViemConfig {
   return 'viemClient' in config && 'viemSignerAccount' in config;
@@ -65,9 +65,9 @@ export function isViemConfig(
 /**
  * Type guard to check if config is ethers-based
  * @param config - AccessClient configuration to check
- * @returns True if the configuration is for ethers client
+ * @returns true if the configuration is for ethers client
  */
-export function isEthersConfig(
+export function isEthersAccessClientConfig(
   config: AccessClientConfig,
 ): config is AccessClientEthersConfig {
   return 'ethersProvider' in config && 'ethersSigner' in config;

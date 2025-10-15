@@ -141,7 +141,7 @@ For detailed viem documentation, see [VIEM_SUPPORT.md](./VIEM_SUPPORT.md).
 
 ## AccessClient - Object-Oriented Interface
 
-For applications requiring multiple TACo operations or complex configuration management, the TACo SDK provides an optional object-oriented interface through the `AccessClient` class. This provides a stateful, higher-level abstraction over the functional API.
+For applications requiring multiple TACo cryptographic operations or complex configuration management, the TACo SDK provides an optional object-oriented interface through the `AccessClient` class. This provides a stateful, higher-level abstraction over the functional API.
 
 The Object-Oriented API is fully backward compatible - you can use both APIs in
 the same application as needed. Except that the AccessClient has additional validations
