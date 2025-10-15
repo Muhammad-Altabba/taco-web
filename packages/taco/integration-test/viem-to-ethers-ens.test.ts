@@ -1,6 +1,7 @@
 import { describe, expect, test, vi } from 'vitest';
 
 import { toEthersProvider } from '@nucypher/shared';
+import { ethers } from 'ethers';
 import { createPublicClient, http } from 'viem';
 import { mainnet } from 'viem/chains';
 
@@ -22,7 +23,7 @@ describe.skipIf(!process.env.RUNNING_IN_CI)(
       expect(resolvedAddress).toBeTruthy();
       // Currently vitalik.eth is "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045".
       // But it may change in the future. So we only check if it's a valid Ethereum address.
-      expect(resolvedAddress).toMatch(/^0x[a-fA-F0-9]{40}$/); // Valid Ethereum address format
+      expect(ethers.utils.isAddress(resolvedAddress)).toBe(true); // Valid Ethereum address format
 
       // Currently ethersProvider.network.ensAddress on mainnet is "0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e".
       expect(ethersProvider.network.ensAddress).toBeTruthy();
@@ -60,7 +61,7 @@ describe.skipIf(!process.env.RUNNING_IN_CI)(
       // Test actual ENS name resolution to verify functionality
       const resolvedAddress = await ethersProvider.resolveName('vitalik.eth');
       expect(resolvedAddress).toBeTruthy();
-      expect(resolvedAddress).toMatch(/^0x[a-fA-F0-9]{40}$/); // Valid Ethereum address format
+      expect(ethers.utils.isAddress(resolvedAddress)).toBe(true); // Valid Ethereum address format
     }, 15000);
 
     test('should warn when viem chain lacks ENS registry configuration', async () => {
@@ -79,12 +80,16 @@ describe.skipIf(!process.env.RUNNING_IN_CI)(
       expect(consoleSpy).toHaveBeenCalledWith(
         expect.stringContaining('No ENS registry found on chain'),
       );
-
-      // ENS address should not be set
-      expect(ethersProvider.network.ensAddress).toBeUndefined();
-
       // Clean up the spy
       consoleSpy.mockRestore();
+
+      // ENS address is expected to not be set
+      expect(ethersProvider.network.ensAddress).toBeUndefined();
+
+      // ENS operation is expected to fail
+      expect(ethersProvider.resolveName('vitalik.eth')).rejects.toThrow(
+        'network does not support ENS',
+      );
     });
   },
 );

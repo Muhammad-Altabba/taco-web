@@ -17,7 +17,11 @@ function createNetworkish(chain: Chain): ethers.providers.Networkish {
     networkish.ensAddress = chain.contracts.ensRegistry.address;
   } else {
     console.warn(
-      `No ENS registry found on chain ${chain.name} (chainId=${chain.id}) at chain.contracts.ensRegistry.address. Resolving ENS will not work on the created ethers Provider.`,
+      `No ENS registry found on chain ${chain.name} (chainId=${chain.id}).\n` +
+        `With the current configuration, ENS resolution will not work on the created ethers Provider.\n` +
+        `To fix this either:\n` +
+        `  - Set chain.contracts.ensRegistry.address to the correct ENS registry address, or\n` +
+        `  - Or omit the \`chain\` data to allow automatic ENS registry detection from the provider.`,
     );
   }
 
