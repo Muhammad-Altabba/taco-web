@@ -109,9 +109,7 @@ describe('viem ethers adapter', () => {
       };
 
       const clientWithoutChain = createPublicClient(clientWithoutChainConfig);
-      expect(() => viemClientToProvider(clientWithoutChain)).toThrow(
-        'Client must have a chain configured',
-      );
+      expect(() => viemClientToProvider(clientWithoutChain)).not.toThrow();
     });
 
     it('should handle missing transport URL', () => {

@@ -15,6 +15,14 @@ function createNetworkish(chain: Chain): ethers.providers.Networkish {
   // Add ENS registry address if available
   if (chain.contracts?.ensRegistry?.address) {
     networkish.ensAddress = chain.contracts.ensRegistry.address;
+  } else {
+    console.warn(
+      `No ENS registry found on chain ${chain.name} (chainId=${chain.id}).\n` +
+        `With the current configuration, ENS resolution will not work on the created ethers Provider.\n` +
+        `To fix this either:\n` +
+        `  - Set chain.contracts.ensRegistry.address to the correct ENS registry address, or\n` +
+        `  - Or omit the \`chain\` data to allow automatic ENS registry detection from the provider.`,
+    );
   }
 
   return networkish;
@@ -41,11 +49,10 @@ export function viemClientToProvider(
 ): ethers.providers.Provider {
   const { chain, transport }: PublicClient = client;
 
-  if (!chain) {
-    throw new Error('Client must have a chain configured');
+  let networkish: ethers.providers.Networkish | undefined;
+  if (chain) {
+    networkish = createNetworkish(chain);
   }
-
-  const networkish = createNetworkish(chain);
 
   // Note: We read minimal, commonly-present properties from transport.
   // viem's transport internals are not a public API and may change.
