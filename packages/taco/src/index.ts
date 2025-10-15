@@ -14,8 +14,8 @@ export * as conditions from './conditions/index.js';
 export { decrypt, encrypt, encryptWithPublicKey } from './taco.js';
 
 export {
-  TacoClient,
-  type TacoClientConfig,
-  type TacoClientEthersConfig,
-  type TacoClientViemConfig,
-} from './client/index.js';
+  AccessClient,
+  type AccessClientConfig,
+  type AccessClientEthersConfig,
+  type AccessClientViemConfig,
+} from './access-client/index.js';

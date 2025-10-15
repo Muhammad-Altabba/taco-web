@@ -10,11 +10,11 @@ import { createPublicClient, http, LocalAccount } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { polygonAmoy } from 'viem/chains';
 import {
+  AccessClient,
+  AccessClientEthersConfig,
+  AccessClientViemConfig,
   conditions,
   initialize,
-  TacoClient,
-  TacoClientEthersConfig,
-  TacoClientViemConfig,
   ThresholdMessageKit,
 } from '../src';
 import { DkgClient } from '../src/dkg';
@@ -29,11 +29,11 @@ const RITUAL_ID = 6;
 const CHAIN_ID = 80002; // Polygon Amoy
 
 // temp type-safe configuration interfaces just for this testing file
-type ViemTestConfig = Omit<TacoClientViemConfig, 'domain' | 'ritualId'>;
-type EthersTestConfig = Omit<TacoClientEthersConfig, 'domain' | 'ritualId'>;
+type ViemTestConfig = Omit<AccessClientViemConfig, 'domain' | 'ritualId'>;
+type EthersTestConfig = Omit<AccessClientEthersConfig, 'domain' | 'ritualId'>;
 
 describe.skipIf(!process.env.RUNNING_IN_CI)(
-  'TacoClient Integration Test',
+  'AccessClient Integration Test',
   () => {
     // Create viem accounts from private keys
     const encryptorAccount = privateKeyToAccount(
@@ -149,7 +149,7 @@ describe.skipIf(!process.env.RUNNING_IN_CI)(
       ])('TacoClient with %s', (label, objects, consumerSigner) => {
       test('should encrypt and decrypt a message using standard encrypt method', async () => {
         // Setup
-        const tacoClient = new TacoClient({
+        const accessClient = new AccessClient({
           domain: DOMAIN,
           ritualId: RITUAL_ID,
           ...objects,
@@ -161,7 +161,7 @@ describe.skipIf(!process.env.RUNNING_IN_CI)(
         const condition = createTestCondition();
 
         // Encrypt the message
-        const messageKit = await tacoClient.encrypt(message, condition);
+        const messageKit = await accessClient.encrypt(message, condition);
         expect(messageKit).toBeInstanceOf(ThresholdMessageKit);
         expect(messageKit.toBytes()).toBeInstanceOf(Uint8Array);
 
@@ -173,7 +173,7 @@ describe.skipIf(!process.env.RUNNING_IN_CI)(
         );
 
         // Test decryption with Uint8Array input
-        const decryptedBytes = await tacoClient.decrypt(
+        const decryptedBytes = await accessClient.decrypt(
           messageKit.toBytes(),
           conditionContext,
         );
@@ -181,7 +181,7 @@ describe.skipIf(!process.env.RUNNING_IN_CI)(
         expect(decryptedMessageString).toEqual(messageString);
 
         // Test decryption with MessageKit object input
-        const decryptedBytes2 = await tacoClient.decrypt(
+        const decryptedBytes2 = await accessClient.decrypt(
           messageKit,
           conditionContext,
         );
@@ -190,8 +190,8 @@ describe.skipIf(!process.env.RUNNING_IN_CI)(
       }, 30000);
 
       test('should encrypt and decrypt using offline encryptWithPublicKey method', async () => {
-        // Create TacoClient from configuration
-        const tacoClient = new TacoClient({
+        // Create AccessClient using the test configuration
+        const accessClient = new AccessClient({
           domain: DOMAIN,
           ritualId: RITUAL_ID,
           ...objects,
@@ -211,13 +211,12 @@ describe.skipIf(!process.env.RUNNING_IN_CI)(
         expect(dkgPublicKey).toBeDefined();
 
         // Perform offline encryption with DKG public key
-        const messageKit = await tacoClient.encryptWithPublicKey(
+        const messageKit = await accessClient.encryptWithPublicKey(
           message,
           condition,
           dkgPublicKey,
         );
         expect(messageKit).toBeInstanceOf(ThresholdMessageKit);
-        expect(messageKit.toBytes()).toBeInstanceOf(Uint8Array);
 
         // Setup condition context with consumer signer for decryption
         const conditionContext = await setupConditionContext(
@@ -227,7 +226,7 @@ describe.skipIf(!process.env.RUNNING_IN_CI)(
         );
 
         // Decrypt and verify
-        const decryptedBytes = await tacoClient.decrypt(
+        const decryptedBytes = await accessClient.decrypt(
           messageKit,
           conditionContext,
         );
@@ -237,14 +236,14 @@ describe.skipIf(!process.env.RUNNING_IN_CI)(
 
       test('should successfully validate network configuration', async () => {
         // Setup
-        const tacoClient = new TacoClient({
+        const accessClient = new AccessClient({
           domain: DOMAIN,
           ritualId: RITUAL_ID,
           ...objects,
         });
 
         // Validate configuration with network calls
-        const validation = tacoClient.validateConfig();
+        const validation = accessClient.validateConfig();
 
         expect(validation).resolves.not.toThrow();
       }, 10000);

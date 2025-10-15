@@ -14,7 +14,11 @@ import {
 import { ethers } from 'ethers';
 import type { PublicClient } from 'viem';
 
-import { isEthersConfig, isViemConfig, type TacoClientConfig } from './index.js';
+import {
+  type AccessClientConfig,
+  isEthersAccessClientConfig,
+  isViemAccessClientConfig,
+} from './index.js';
 
 /**
  * Generic validation result interface
@@ -25,12 +29,12 @@ export interface ValidationResult {
 }
 
 /**
- * TACo Configuration Validator
+ * Access Configuration Validator
  *
- * Validates TACo client configurations, domains, and provider compatibility.
+ * Validates Access client configurations, domains, and provider compatibility.
  * Provides both fast and full validation methods for TACo operations.
  */
-export class TacoConfigValidator {
+export class AccessConfigValidator {
   /**
    * Get all supported TACo domain names
    * @returns {DomainName[]} Array of supported TACo domain names ('lynx', 'tapir', 'mainnet')
@@ -127,7 +131,7 @@ export class TacoConfigValidator {
    * @param {TacoClientConfig} config - Configuration to validate
    * @returns {ValidationResult} Validation result with isValid boolean and errors array
    */
-  static validateFast(config: TacoClientConfig): ValidationResult {
+  static validateFast(config: AccessClientConfig): ValidationResult {
     const errors: string[] = [];
 
     // Validate domain
@@ -149,7 +153,7 @@ export class TacoConfigValidator {
     }
 
     // Validate blockchain client configuration
-    if (isViemConfig(config)) {
+    if (isViemAccessClientConfig(config)) {
       // Viem configuration
       if (!config.viemClient) {
         errors.push('viemClient is required for viem configuration');
@@ -157,7 +161,7 @@ export class TacoConfigValidator {
       if (!config.viemSignerAccount) {
         errors.push('viemSignerAccount is required for viem configuration');
       }
-    } else if (isEthersConfig(config)) {
+    } else if (isEthersAccessClientConfig(config)) {
       // Ethers configuration
       if (!config.ethersProvider) {
         errors.push('ethersProvider is required for ethers configuration');
@@ -191,7 +195,7 @@ export class TacoConfigValidator {
    * @private
    */
   private static validateChainCompatibility(
-    config: TacoClientConfig,
+    config: AccessClientConfig,
   ): ValidationResult {
     const errors: string[] = [];
 
@@ -202,7 +206,7 @@ export class TacoConfigValidator {
       return { isValid: false, errors };
     }
 
-    if (isViemConfig(config) && config.viemClient) {
+    if (isViemAccessClientConfig(config) && config.viemClient) {
       // Note: If viemClient.chain is undefined, we skip synchronous validation
       // Full validation with validateFull() will perform the network check
       const viemClient = config.viemClient as PublicClient;
@@ -229,7 +233,7 @@ export class TacoConfigValidator {
    * @param {TacoClientConfig} config - Configuration to validate
    * @returns {Promise<ValidationResult>} Promise resolving to validation result with isValid boolean and errors array
    */
-  static async validate(config: TacoClientConfig): Promise<ValidationResult> {
+  static async validate(config: AccessClientConfig): Promise<ValidationResult> {
     // First run fast validation
     const fastResult = this.validateFast(config);
     if (!fastResult.isValid) {
@@ -241,9 +245,9 @@ export class TacoConfigValidator {
     // Additional async provider validation
     let provider: PublicClient | ethers.providers.Provider | undefined;
 
-    if (isViemConfig(config)) {
+    if (isViemAccessClientConfig(config)) {
       provider = config.viemClient;
-    } else if (isEthersConfig(config)) {
+    } else if (isEthersAccessClientConfig(config)) {
       provider = config.ethersProvider;
     }
 
