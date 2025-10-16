@@ -312,7 +312,7 @@ describe('AccessClient', () => {
       },
     ])('should pass full validation for $description', async ({ config }) => {
       const result = AccessConfigValidator.validate(config());
-      expect(result).resolves.not.toThrow();
+      await expect(result).resolves.not.toThrow();
     });
 
     it('should detect and report missing blockchain dependencies', async () => {

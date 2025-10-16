@@ -8,7 +8,6 @@ import {
 import { ethers } from 'ethers';
 import { createPublicClient, http, LocalAccount } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
-import { polygonAmoy } from 'viem/chains';
 import {
   AccessClient,
   AccessClientEthersConfig,
@@ -45,7 +44,6 @@ describe.skipIf(!process.env.RUNNING_IN_CI)(
 
     // Create viem clients for correct network (Polygon Amoy)
     const viemPublicClient = createPublicClient({
-      chain: polygonAmoy,
       transport: http(RPC_PROVIDER_URL),
     });
     const viemTestConfig: ViemTestConfig = {

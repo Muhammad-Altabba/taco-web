@@ -71,7 +71,7 @@ describe.skipIf(!process.env.RUNNING_IN_CI)(
         transport: http(),
       });
 
-      const consoleSpy = vi.spyOn(console, 'warn');
+      const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
       // Convert to ethers provider
       const ethersProvider = toEthersProvider(mainnetViemClient);
@@ -87,7 +87,7 @@ describe.skipIf(!process.env.RUNNING_IN_CI)(
       expect(ethersProvider.network.ensAddress).toBeUndefined();
 
       // ENS operation is expected to fail
-      expect(ethersProvider.resolveName('vitalik.eth')).rejects.toThrow(
+      await expect(ethersProvider.resolveName('vitalik.eth')).rejects.toThrow(
         'network does not support ENS',
       );
     });
