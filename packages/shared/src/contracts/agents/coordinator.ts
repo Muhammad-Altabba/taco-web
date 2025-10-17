@@ -1,9 +1,9 @@
-import { getContract } from '@nucypher/nucypher-contracts';
+import { getContract } from '@nucypher-experimental/nucypher-contracts';
 import {
   DkgPublicKey,
   SessionStaticKey,
   ThresholdMessageKit,
-} from '@nucypher/nucypher-core';
+} from '@nucypher-experimental/nucypher-core';
 import { BigNumberish, ethers } from 'ethers';
 
 import { Domain } from '../../porter.js';

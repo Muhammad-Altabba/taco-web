@@ -1,7 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, expect, it } from 'vitest';
 
-import type { PublicClient, SignerAccount } from '@nucypher/shared';
+import type {
+  PublicClient,
+  SignerAccount,
+} from '@nucypher-experimental/shared';
 
 describe('viem types', () => {
   it('should support viem-like client objects', () => {

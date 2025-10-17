@@ -2,4 +2,4 @@
 export {
   Conditions as CoreConditions,
   Context as CoreContext,
-} from '@nucypher/nucypher-core';
+} from '@nucypher-experimental/nucypher-core';

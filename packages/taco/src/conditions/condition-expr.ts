@@ -1,4 +1,4 @@
-import { Conditions as CoreConditions } from '@nucypher/nucypher-core';
+import { Conditions as CoreConditions } from '@nucypher-experimental/nucypher-core';
 import { SemVer } from 'semver';
 
 import { fromJSON, toJSON } from '../utils.js';

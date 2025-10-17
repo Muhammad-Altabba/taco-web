@@ -1,5 +1,8 @@
-import { USER_ADDRESS_PARAM_DEFAULT } from '@nucypher/taco-auth';
-import { TEST_CHAIN_ID, TEST_CONTRACT_ADDR } from '@nucypher/test-utils';
+import { USER_ADDRESS_PARAM_DEFAULT } from '@nucypher-experimental/taco-auth';
+import {
+  TEST_CHAIN_ID,
+  TEST_CONTRACT_ADDR,
+} from '@nucypher-experimental/test-utils';
 import { describe, expect, it } from 'vitest';
 
 import { ContractConditionProps } from '../../../src/conditions/base/contract';

@@ -1,4 +1,4 @@
-import { fakeUrsulas } from '@nucypher/test-utils';
+import { fakeUrsulas } from '@nucypher-experimental/test-utils';
 import axios, { HttpStatusCode } from 'axios';
 import { MockInstance, beforeAll, describe, expect, it, vi } from 'vitest';
 import {

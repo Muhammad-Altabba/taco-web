@@ -10,7 +10,7 @@ import {
   DOMAINS,
   isViemClient,
   ProviderLike,
-} from '@nucypher/shared';
+} from '@nucypher-experimental/shared';
 import { ethers } from 'ethers';
 import type { PublicClient } from 'viem';
 

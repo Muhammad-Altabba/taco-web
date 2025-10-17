@@ -1,4 +1,4 @@
-import { TEST_CHAIN_ID } from '@nucypher/test-utils';
+import { TEST_CHAIN_ID } from '@nucypher-experimental/test-utils';
 import { describe, expect, it } from 'vitest';
 
 import { ContractCondition } from '../../src/conditions/base/contract';

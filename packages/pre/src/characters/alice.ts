@@ -3,8 +3,12 @@ import {
   SecretKey,
   Signer,
   VerifiedKeyFrag,
-} from '@nucypher/nucypher-core';
-import { ChecksumAddress, Domain, PorterClient } from '@nucypher/shared';
+} from '@nucypher-experimental/nucypher-core';
+import {
+  ChecksumAddress,
+  Domain,
+  PorterClient,
+} from '@nucypher-experimental/shared';
 import { ethers } from 'ethers';
 
 import { Keyring } from '../keyring';

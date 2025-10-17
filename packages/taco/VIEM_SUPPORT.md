@@ -19,7 +19,7 @@ If you need authentication providers that work with viem, install the taco-auth
 package:
 
 ```bash
-npm install @nucypher/taco-auth viem
+npm install @nucypher-experimental/taco-auth viem
 ```
 
 ## Supported Libraries
@@ -35,7 +35,7 @@ import {
   conditions,
   domains,
   initialize,
-} from '@nucypher/taco';
+} from '@nucypher-experimental/taco';
 import { createPublicClient, http } from 'viem';
 import { polygonAmoy } from 'viem/chains';
 import { privateKeyToAccount } from 'viem/accounts';
@@ -85,7 +85,7 @@ console.log(new TextDecoder().decode(decryptedMessage)); // "Hello, secret!"
 ## Authentication Providers
 
 For applications that need authentication providers compatible with viem, use
-the `@nucypher/taco-auth` package:
+the `@nucypher-experimental/taco-auth` package:
 
 ### EIP4361AuthProvider
 
@@ -95,7 +95,7 @@ the `@nucypher/taco-auth` package:
 import { createPublicClient, http } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { polygonAmoy } from 'viem/chains';
-import { EIP4361AuthProvider } from '@nucypher/taco-auth';
+import { EIP4361AuthProvider } from '@nucypher-experimental/taco-auth';
 
 const publicClient = createPublicClient({
   chain: polygonAmoy,
@@ -116,7 +116,7 @@ const authSignature = await authProvider.getOrCreateAuthSignature();
 
 ```typescript
 import { ethers } from 'ethers';
-import { EIP4361AuthProvider } from '@nucypher/taco-auth';
+import { EIP4361AuthProvider } from '@nucypher-experimental/taco-auth';
 
 const provider = new ethers.providers.JsonRpcProvider();
 const signer = new ethers.Wallet('0x...', provider);
@@ -129,6 +129,6 @@ const authProvider = new EIP4361AuthProvider(provider, signer);
 
 Use the appropriate package based on your needs:
 
-- **Encryption only**: Install `@nucypher/taco` + `viem`
-- **Authentication required**: Install both `@nucypher/taco` +
-  `@nucypher/taco-auth` + `viem`
+- **Encryption only**: Install `@nucypher-experimental/taco` + `viem`
+- **Authentication required**: Install both `@nucypher-experimental/taco` +
+  `@nucypher-experimental/taco-auth` + `viem`

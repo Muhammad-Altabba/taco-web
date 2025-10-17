@@ -5,7 +5,7 @@
  * for configuring AccessClient instances with different blockchain client libraries (viem, ethers.js).
  */
 
-import { DomainName, type PublicClient } from '@nucypher/shared';
+import { DomainName, type PublicClient } from '@nucypher-experimental/shared';
 import type { ethers } from 'ethers';
 
 /**

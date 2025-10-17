@@ -10,7 +10,7 @@
  *
  * Usage:
  * ```typescript
- * import { type PublicClient } from '@nucypher/shared';
+ * import { type PublicClient } from '@nucypher-experimental/shared';
  *
  * // Use viem clients directly with TACo adapters
  * const tacoProvider = await toEthersProvider(publicClient);

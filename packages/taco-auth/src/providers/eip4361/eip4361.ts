@@ -6,7 +6,7 @@ import {
   TacoSigner,
   toEthersProvider,
   toTacoSigner,
-} from '@nucypher/shared';
+} from '@nucypher-experimental/shared';
 import { ethers } from 'ethers';
 import { SiweMessage } from 'siwe';
 

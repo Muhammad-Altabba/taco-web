@@ -23,7 +23,7 @@
     ]
   },
   "dependencies": {
-    "@nucypher/pre": "workspace:*",
+    "@nucypher-experimental/pre": "workspace:*",
     "ethers": "^5.8.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"

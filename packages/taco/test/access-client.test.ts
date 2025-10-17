@@ -1,5 +1,8 @@
-import { DOMAIN_NAMES, DomainName } from '@nucypher/shared';
-import { fakeProvider, fakeViemPublicClient } from '@nucypher/test-utils';
+import { DOMAIN_NAMES, DomainName } from '@nucypher-experimental/shared';
+import {
+  fakeProvider,
+  fakeViemPublicClient,
+} from '@nucypher-experimental/test-utils';
 import { beforeAll, beforeEach, describe, expect, it } from 'vitest';
 
 import {

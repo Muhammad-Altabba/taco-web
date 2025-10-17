@@ -1,4 +1,7 @@
-import { BlockIdentifierSchema, EthAddressSchema } from '@nucypher/shared';
+import {
+  BlockIdentifierSchema,
+  EthAddressSchema,
+} from '@nucypher-experimental/shared';
 import { z } from 'zod';
 
 import { baseConditionSchema, UserAddressSchema } from './common.js';

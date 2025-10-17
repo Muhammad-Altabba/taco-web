@@ -1,6 +1,6 @@
 # `nextjs` integration example
 
-Shows how to use `@nucypher/pre` in Next.js.
+Shows how to use `@nucypher-experimental/pre` in Next.js.
 
 ## Usage
 

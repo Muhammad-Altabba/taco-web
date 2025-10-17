@@ -4,8 +4,12 @@ import {
   PublicKey,
   SecretKey,
   Signer,
-} from '@nucypher/nucypher-core';
-import { ChecksumAddress, PorterClient, zip } from '@nucypher/shared';
+} from '@nucypher-experimental/nucypher-core';
+import {
+  ChecksumAddress,
+  PorterClient,
+  zip,
+} from '@nucypher-experimental/shared';
 
 import { Keyring } from '../keyring';
 import { PolicyMessageKit, RetrievalResult } from '../kits';

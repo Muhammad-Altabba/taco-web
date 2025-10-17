@@ -7,7 +7,7 @@ import {
   contractNames,
   ContractRegistry,
   domainRegistry,
-} from '@nucypher/nucypher-contracts';
+} from '@nucypher-experimental/nucypher-contracts';
 import * as tmp from 'tmp';
 import { glob, runTypeChain } from 'typechain';
 

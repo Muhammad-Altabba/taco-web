@@ -4,8 +4,8 @@ import {
   PublicKey,
   RetrievalKit,
   SecretKey,
-} from '@nucypher/nucypher-core';
-import { ChecksumAddress } from '@nucypher/shared';
+} from '@nucypher-experimental/nucypher-core';
+import { ChecksumAddress } from '@nucypher-experimental/shared';
 
 import { RetrievalResult } from './retrieval';
 

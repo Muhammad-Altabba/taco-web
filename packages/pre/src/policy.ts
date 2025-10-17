@@ -5,7 +5,7 @@ import {
   PublicKey,
   TreasureMap,
   VerifiedKeyFrag,
-} from '@nucypher/nucypher-core';
+} from '@nucypher-experimental/nucypher-core';
 import {
   ChecksumAddress,
   Domain,
@@ -15,7 +15,7 @@ import {
   toEpoch,
   Ursula,
   zip,
-} from '@nucypher/shared';
+} from '@nucypher-experimental/shared';
 import { ethers } from 'ethers';
 
 import { Alice, RemoteBob } from './characters';

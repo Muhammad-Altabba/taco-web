@@ -1,6 +1,6 @@
 # `nodejs-taco` integration example
 
-This example shows how to use `@nucypher/taco` in Node.js.
+This example shows how to use `@nucypher-experimental/taco` in Node.js.
 
 ## Setup
 

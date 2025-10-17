@@ -11,14 +11,14 @@ import {
   SessionStaticSecret,
   ThresholdDecryptionRequest,
   ThresholdMessageKit,
-} from '@nucypher/nucypher-core';
+} from '@nucypher-experimental/nucypher-core';
 import {
   DkgCoordinatorAgent,
   DkgParticipant,
   Domain,
   PorterClient,
   toBytes,
-} from '@nucypher/shared';
+} from '@nucypher-experimental/shared';
 import { ethers } from 'ethers';
 
 import { ConditionExpression } from './conditions/condition-expr.js';

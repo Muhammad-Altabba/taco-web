@@ -10,7 +10,7 @@
     "type-check": "tsc"
   },
   "dependencies": {
-    "@nucypher/pre": "workspace:*",
+    "@nucypher-experimental/pre": "workspace:*",
     "dotenv": "^16.4.7",
     "ethers": "^5.8.0"
   }

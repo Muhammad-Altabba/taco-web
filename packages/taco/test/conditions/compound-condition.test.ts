@@ -1,4 +1,4 @@
-import { ChainId } from '@nucypher/shared';
+import { ChainId } from '@nucypher-experimental/shared';
 import { describe, expect, it } from 'vitest';
 
 import { ContractCondition } from '../../src/conditions/base/contract';

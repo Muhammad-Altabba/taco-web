@@ -1,4 +1,4 @@
-import { EthAddressSchema } from '@nucypher/shared';
+import { EthAddressSchema } from '@nucypher-experimental/shared';
 import { ethers } from 'ethers';
 import { z } from 'zod';
 

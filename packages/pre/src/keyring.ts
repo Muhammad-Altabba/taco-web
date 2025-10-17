@@ -6,8 +6,8 @@ import {
   SecretKeyFactory,
   Signer,
   VerifiedKeyFrag,
-} from '@nucypher/nucypher-core';
-import { toBytes } from '@nucypher/shared';
+} from '@nucypher-experimental/nucypher-core';
+import { toBytes } from '@nucypher-experimental/shared';
 
 import { PolicyMessageKit } from './kits';
 

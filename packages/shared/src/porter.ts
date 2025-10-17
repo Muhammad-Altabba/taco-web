@@ -5,7 +5,7 @@ import {
   PublicKey,
   RetrievalKit,
   TreasureMap,
-} from '@nucypher/nucypher-core';
+} from '@nucypher-experimental/nucypher-core';
 import axios, {
   AxiosRequestConfig,
   AxiosResponse,
@@ -13,7 +13,11 @@ import axios, {
 } from 'axios';
 import qs from 'qs';
 
-import { Base64EncodedBytes, ChecksumAddress, HexEncodedBytes } from './types.js';
+import {
+  Base64EncodedBytes,
+  ChecksumAddress,
+  HexEncodedBytes,
+} from './types.js';
 import { fromBase64, fromHexString, toBase64, toHexString } from './utils.js';
 
 const defaultPorterUri: Record<string, string> = {

@@ -12,8 +12,8 @@
     "type-check": "tsc"
   },
   "dependencies": {
-    "@nucypher/taco": "workspace:*",
-    "@nucypher/taco-auth": "workspace:*"
+    "@nucypher-experimental/taco": "workspace:*",
+    "@nucypher-experimental/taco-auth": "workspace:*"
   },
   "devDependencies": {
     "copy-webpack-plugin": "^13.0.0",

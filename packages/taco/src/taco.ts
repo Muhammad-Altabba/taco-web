@@ -3,7 +3,7 @@ import {
   DkgPublicKey,
   encryptForDkg,
   ThresholdMessageKit,
-} from '@nucypher/nucypher-core';
+} from '@nucypher-experimental/nucypher-core';
 import {
   DkgCoordinatorAgent,
   Domain,
@@ -17,7 +17,7 @@ import {
   toBytes,
   toEthersProvider,
   toTacoSigner,
-} from '@nucypher/shared';
+} from '@nucypher-experimental/shared';
 import { ethers } from 'ethers';
 
 import { ConditionExpression } from './conditions/condition-expr.js';

@@ -21,4 +21,4 @@ export {
   TreasureMap,
   VerifiedKeyFrag,
   initialize,
-} from '@nucypher/nucypher-core';
+} from '@nucypher-experimental/nucypher-core';

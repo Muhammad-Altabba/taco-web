@@ -6,7 +6,7 @@ import {
   initialize,
   SecretKey,
   toBytes,
-} from '@nucypher/pre';
+} from '@nucypher-experimental/pre';
 import * as dotenv from 'dotenv';
 import { ethers } from 'ethers';
 

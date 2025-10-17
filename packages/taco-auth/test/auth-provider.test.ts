@@ -2,7 +2,7 @@ import {
   bobSecretKeyBytes,
   fakeProvider,
   TEST_SIWE_PARAMS,
-} from '@nucypher/test-utils';
+} from '@nucypher-experimental/test-utils';
 import { SiweMessage } from 'siwe';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 

@@ -7,7 +7,7 @@ export {
   SecretKey,
   Signer,
   TreasureMap,
-} from '@nucypher/nucypher-core';
+} from '@nucypher-experimental/nucypher-core';
 export {
   domains,
   fromBytes,
@@ -15,7 +15,7 @@ export {
   initialize,
   toBytes,
   toHexString,
-} from '@nucypher/shared';
+} from '@nucypher-experimental/shared';
 
 export { Alice, Bob, Enrico } from './characters';
 export { Cohort } from './cohort';

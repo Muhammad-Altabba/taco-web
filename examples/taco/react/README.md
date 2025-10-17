@@ -1,6 +1,6 @@
 # `react-taco` integration example
 
-Shows how to integrate `@nucypher/taco` into a React application.
+Shows how to integrate `@nucypher-experimental/taco` into a React application.
 ## Usage
 
 ```bash

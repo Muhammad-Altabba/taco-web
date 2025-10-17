@@ -1,4 +1,4 @@
-import { EthAddressSchema } from '@nucypher/shared';
+import { EthAddressSchema } from '@nucypher-experimental/shared';
 import { z } from 'zod';
 
 import { EIP1271AuthSignature } from './providers/eip1271/auth.js';

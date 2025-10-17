@@ -1,6 +1,10 @@
-import { CapsuleFrag, initialize, reencrypt } from '@nucypher/nucypher-core';
-import { zip } from '@nucypher/shared';
-import { fakeUrsulas } from '@nucypher/test-utils';
+import {
+  CapsuleFrag,
+  initialize,
+  reencrypt,
+} from '@nucypher-experimental/nucypher-core';
+import { zip } from '@nucypher-experimental/shared';
+import { fakeUrsulas } from '@nucypher-experimental/test-utils';
 import { beforeAll, describe, expect, it } from 'vitest';
 
 import { Alice, Bob, Enrico, MessageKit, toBytes } from '../src';

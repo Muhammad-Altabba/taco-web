@@ -1,6 +1,6 @@
 # `nodejs-pre` integration example
 
-Shows how to use `@nucypher/pre in Node.js.
+Shows how to use `@nucypher-experimental/pre in Node.js.
 
 ## Setup
 

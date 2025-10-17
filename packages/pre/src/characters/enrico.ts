@@ -1,5 +1,9 @@
-import { MessageKit, PublicKey, SecretKey } from '@nucypher/nucypher-core';
-import { toBytes } from '@nucypher/shared';
+import {
+  MessageKit,
+  PublicKey,
+  SecretKey,
+} from '@nucypher-experimental/nucypher-core';
+import { toBytes } from '@nucypher-experimental/shared';
 
 import { Keyring } from '../keyring';
 

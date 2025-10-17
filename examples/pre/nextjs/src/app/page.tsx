@@ -8,7 +8,7 @@ import {
   initialize,
   SecretKey,
   toHexString,
-} from '@nucypher/pre';
+} from '@nucypher-experimental/pre';
 import { ethers } from 'ethers';
 import { hexlify } from 'ethers/lib/utils';
 import { useEffect, useState } from 'react';

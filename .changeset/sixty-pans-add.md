@@ -1,7 +1,7 @@
 ---
-'@nucypher/shared': major
-'@nucypher/taco': major
-'@nucypher/test-utils': minor
+'@nucypher-experimental/shared': major
+'@nucypher-experimental/taco': major
+'@nucypher-experimental/test-utils': minor
 ---
 
 Initial package release

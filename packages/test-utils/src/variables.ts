@@ -1,4 +1,4 @@
-import { ChainId } from '@nucypher/shared';
+import { ChainId } from '@nucypher-experimental/shared';
 
 export const aliceSecretKeyBytes = new Uint8Array([
   55, 82, 190, 189, 203, 164, 60, 148, 36, 86, 46, 123, 63, 152, 215, 113, 174,

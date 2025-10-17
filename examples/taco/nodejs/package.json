@@ -10,8 +10,8 @@
     "type-check": "tsc"
   },
   "dependencies": {
-    "@nucypher/taco": "workspace:*",
-    "@nucypher/taco-auth": "workspace:*",
+    "@nucypher-experimental/taco": "workspace:*",
+    "@nucypher-experimental/taco-auth": "workspace:*",
     "dotenv": "^16.5.0",
     "ethers": "^5.8.0"
   }

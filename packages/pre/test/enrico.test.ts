@@ -1,6 +1,6 @@
 // Disabling because we want to access Alice.keyring which is a private property
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { bytesEqual, fromBytes } from '@nucypher/test-utils';
+import { bytesEqual, fromBytes } from '@nucypher-experimental/test-utils';
 import { beforeAll, describe, expect, it } from 'vitest';
 
 import { Enrico, initialize, toBytes } from '../src';

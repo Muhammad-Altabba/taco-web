@@ -1,10 +1,10 @@
-# `@nucypher/taco`
+# `@nucypher-experimental/taco`
 
 ### [`nucypher/taco-web`](../../README.md)
 
 ## Supported `taco` versions
 
-To use `taco`, you need to connect with a proper network: `mainnet`, `testnet`, or `devnet`. You can find a proper version for each network in the [npmjs.com package tags](https://www.npmjs.com/package/@nucypher/taco?activeTab=versions).
+To use `taco`, you need to connect with a proper network: `mainnet`, `testnet`, or `devnet`. You can find a proper version for each network in the [npmjs.com package tags](https://www.npmjs.com/package/@nucypher-experimental/taco?activeTab=versions).
 
 Visit [our documentation](https://docs.taco.build/taco-integration/) to learn more.
 
@@ -13,13 +13,13 @@ Visit [our documentation](https://docs.taco.build/taco-integration/) to learn mo
 First, install the package:
 
 ```bash
-$ yarn add @nucypher/taco ethers@5.7.2
+$ yarn add @nucypher-experimental/taco ethers@5.7.2
 ```
 
 ### Encrypt your data
 
 ```typescript
-import { conditions, domains, encrypt, initialize } from '@nucypher/taco';
+import { conditions, domains, encrypt, initialize } from '@nucypher-experimental/taco';
 import { ethers } from 'ethers';
 
 // We have to initialize the TACo library first
@@ -48,7 +48,7 @@ const messageKit = await encrypt(
 ### Decrypt your data
 
 ```typescript
-import { decrypt, domains, getPorterUri, initialize } from '@nucypher/taco';
+import { decrypt, domains, getPorterUri, initialize } from '@nucypher-experimental/taco';
 import { ethers } from 'ethers';
 
 // We have to initialize the TACo library first
@@ -69,11 +69,11 @@ const decryptedMessage = await decrypt(
 The TACo SDK supports both [ethers.js](https://docs.ethers.org/) natively, and [viem](https://viem.sh). The same `encrypt` and `decrypt` functions work with both libraries. Here is how to use them with viem:
 
 ```bash
-$ yarn add @nucypher/taco viem
+$ yarn add @nucypher-experimental/taco viem
 ```
 
 ```typescript
-import { encrypt, decrypt, conditions, domains, initialize } from '@nucypher/taco';
+import { encrypt, decrypt, conditions, domains, initialize } from '@nucypher-experimental/taco';
 import { createPublicClient, http } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { polygonAmoy } from 'viem/chains';
@@ -154,7 +154,7 @@ Choose the one that best suits your development preferences.
 ### Basic Usage
 
 ```typescript
-import { AccessClient, ConditionContext, DOMAIN_NAMES } from '@nucypher/taco';
+import { AccessClient, ConditionContext, DOMAIN_NAMES } from '@nucypher-experimental/taco';
 import { createPublicClient, http } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { polygonAmoy } from 'viem/chains';
@@ -194,7 +194,7 @@ const decryptedMessage = await accessClient.decrypt(messageKit, conditionContext
 AccessClient supports both viem and ethers.js configurations:
 
 ```typescript
-import { AccessClient, DOMAIN_NAMES } from '@nucypher/taco';
+import { AccessClient, DOMAIN_NAMES } from '@nucypher-experimental/taco';
 
 // With viem
 const accessClientViem = new AccessClient({

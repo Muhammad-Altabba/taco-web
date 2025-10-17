@@ -1,5 +1,5 @@
 {
   "extends": ["../../typedoc.base.json"],
   "entryPoints": ["src/index.ts"],
-  "name": "@nucypher/taco-auth"
+  "name": "@nucypher-experimental/taco-auth"
 }

@@ -1,4 +1,4 @@
-import { toHexString } from '@nucypher/shared';
+import { toHexString } from '@nucypher-experimental/shared';
 
 const customTypeReplacer = (_key: string, value: unknown) => {
   if (value instanceof Uint8Array) {
