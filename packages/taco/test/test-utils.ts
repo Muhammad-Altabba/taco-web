@@ -24,7 +24,7 @@ import {
   toBytes,
   toHexString,
   zip,
-} from '@nucypher/shared';
+} from '@nucypher-experimental/shared';
 import {
   fakeDkgFlow,
   fakeProvider,
@@ -32,7 +32,7 @@ import {
   TEST_CHAIN_ID,
   TEST_CONTRACT_ADDR,
   TEST_ECDSA_PUBLIC_KEY,
-} from '@nucypher/test-utils';
+} from '@nucypher-experimental/test-utils';
 import { ethers } from 'ethers';
 import { MockInstance, vi } from 'vitest';
 

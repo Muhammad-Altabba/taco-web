@@ -11,9 +11,9 @@
     "type-check": "tsc -p tsconfig.build.json"
   },
   "dependencies": {
-    "@nucypher/shared": "workspace:*",
-    "@nucypher/taco": "workspace:*",
-    "@nucypher/taco-auth": "workspace:*",
+    "@nucypher-experimental/shared": "workspace:*",
+    "@nucypher-experimental/taco": "workspace:*",
+    "@nucypher-experimental/taco-auth": "workspace:*",
     "@types/node": "24.3.0",
     "@types/react": "18.3.5",
     "@types/react-dom": "18.3.0",

@@ -87,6 +87,12 @@ done
 echo ""
 echo -e "${BLUE}Publishing packages with 'dev' tag...${NC}"
 
+# Ensure npm authentication is configured
+if [ -n "$NODE_AUTH_TOKEN" ]; then
+  echo "//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}" > ~/.npmrc
+  echo -e "${BLUE}✓ NPM authentication configured${NC}"
+fi
+
 # Publish all packages with dev tag
 pnpm -r --filter './packages/**' publish --tag dev --access public --no-git-checks
 

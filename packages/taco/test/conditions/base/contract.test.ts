@@ -1,6 +1,9 @@
 import { initialize } from '@nucypher/nucypher-core';
-import { AuthProvider, USER_ADDRESS_PARAM_DEFAULT } from '@nucypher/taco-auth';
-import { EIP4361, fakeAuthProviders } from '@nucypher/test-utils';
+import {
+  AuthProvider,
+  USER_ADDRESS_PARAM_DEFAULT,
+} from '@nucypher-experimental/taco-auth';
+import { EIP4361, fakeAuthProviders } from '@nucypher-experimental/test-utils';
 import { ethers } from 'ethers';
 import { beforeAll, describe, expect, it } from 'vitest';
 

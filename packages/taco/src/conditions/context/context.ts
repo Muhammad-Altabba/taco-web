@@ -6,7 +6,7 @@ import {
   EIP4361AuthProvider,
   SingleSignOnEIP4361AuthProvider,
   USER_ADDRESS_PARAM_DEFAULT,
-} from '@nucypher/taco-auth';
+} from '@nucypher-experimental/taco-auth';
 
 import { CoreConditions, CoreContext } from '../../types.js';
 import { toJSON } from '../../utils.js';

@@ -1,4 +1,3 @@
-export { DkgPublicKey, ThresholdMessageKit } from '@nucypher/nucypher-core';
 export {
   Domain,
   domains,
@@ -7,7 +6,8 @@ export {
   initialize,
   toBytes,
   toHexString,
-} from '@nucypher/shared';
+} from '@nucypher-experimental/shared';
+export { DkgPublicKey, ThresholdMessageKit } from '@nucypher/nucypher-core';
 
 export * as conditions from './conditions/index.js';
 

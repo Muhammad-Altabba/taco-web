@@ -4,7 +4,7 @@ import {
   fakeProvider,
   fakeUrsulas,
   mockGetUrsulas,
-} from '@nucypher/test-utils';
+} from '@nucypher-experimental/test-utils';
 import { beforeAll, describe, expect, it } from 'vitest';
 
 import { domains, initialize } from '../../src';

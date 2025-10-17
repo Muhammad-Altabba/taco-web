@@ -1,5 +1,5 @@
-import { DkgCoordinatorAgent } from '@nucypher/shared';
-import { fakeProvider } from '@nucypher/test-utils';
+import { DkgCoordinatorAgent } from '@nucypher-experimental/shared';
+import { fakeProvider } from '@nucypher-experimental/test-utils';
 import { beforeAll, describe, expect, it } from 'vitest';
 
 import { domains, initialize } from '../src';

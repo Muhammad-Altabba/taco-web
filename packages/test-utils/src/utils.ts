@@ -36,14 +36,14 @@ import {
   TacoDecryptResult,
   Ursula,
   zip,
-} from '@nucypher/shared';
+} from '@nucypher-experimental/shared';
 import {
   AuthProvider,
   AuthSignature,
   EIP1271AuthProvider,
   EIP4361AuthProvider,
   SingleSignOnEIP4361AuthProvider,
-} from '@nucypher/taco-auth';
+} from '@nucypher-experimental/taco-auth';
 import { ethers, providers, Wallet } from 'ethers';
 import { createPublicClient, custom, PublicClient } from 'viem';
 import { LocalAccount, privateKeyToAccount } from 'viem/accounts';

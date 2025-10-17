@@ -1,6 +1,6 @@
 # `webpack-5` integration example
 
-Shows how to integrate `@nucypher/taco` with Webpack 5.
+Shows how to integrate `@nucypher-experimental/taco` with Webpack 5.
 
 ## Usage
 

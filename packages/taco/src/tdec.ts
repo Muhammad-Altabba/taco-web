@@ -18,7 +18,7 @@ import {
   Domain,
   PorterClient,
   toBytes,
-} from '@nucypher/shared';
+} from '@nucypher-experimental/shared';
 import { ethers } from 'ethers';
 
 import { ConditionExpression } from './conditions/condition-expr.js';

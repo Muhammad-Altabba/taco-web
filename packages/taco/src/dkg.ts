@@ -5,7 +5,7 @@ import {
   DkgRitualState,
   Domain,
   fromHexString,
-} from '@nucypher/shared';
+} from '@nucypher-experimental/shared';
 import { BigNumberish, ethers } from 'ethers';
 
 export interface DkgRitualJSON {

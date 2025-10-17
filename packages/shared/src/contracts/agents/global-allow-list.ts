@@ -4,7 +4,10 @@ import { ethers } from 'ethers';
 import { Domain } from '../../porter.js';
 import { ChecksumAddress } from '../../types.js';
 import { DEFAULT_WAIT_N_CONFIRMATIONS } from '../const.js';
-import { GlobalAllowList, GlobalAllowList__factory } from '../ethers-typechain/index.js';
+import {
+  GlobalAllowList,
+  GlobalAllowList__factory,
+} from '../ethers-typechain/index.js';
 
 export class GlobalAllowListAgent {
   public static async registerEncrypters(

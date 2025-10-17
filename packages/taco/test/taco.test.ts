@@ -3,8 +3,8 @@ import {
   initialize,
   SessionStaticSecret,
 } from '@nucypher/nucypher-core';
-import * as tacoAuth from '@nucypher/taco-auth';
-import { USER_ADDRESS_PARAM_DEFAULT } from '@nucypher/taco-auth';
+import * as tacoAuth from '@nucypher-experimental/taco-auth';
+import { USER_ADDRESS_PARAM_DEFAULT } from '@nucypher-experimental/taco-auth';
 import {
   aliceSecretKeyBytes,
   fakeDkgFlow,
@@ -17,7 +17,7 @@ import {
   mockTacoDecrypt,
   TEST_CHAIN_ID,
   TEST_SIWE_PARAMS,
-} from '@nucypher/test-utils';
+} from '@nucypher-experimental/test-utils';
 import { ethers } from 'ethers';
 import type { LocalAccount, PublicClient } from 'viem';
 import { beforeAll, describe, expect, it } from 'vitest';

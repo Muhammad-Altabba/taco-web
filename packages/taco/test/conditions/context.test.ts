@@ -7,14 +7,14 @@ import {
   EIP4361AuthProvider,
   SingleSignOnEIP4361AuthProvider,
   USER_ADDRESS_PARAM_DEFAULT,
-} from '@nucypher/taco-auth';
+} from '@nucypher-experimental/taco-auth';
 import {
   EIP1271,
   EIP4361,
   fakeAuthProviders,
   fakeProvider,
   SSO_EIP4361,
-} from '@nucypher/test-utils';
+} from '@nucypher-experimental/test-utils';
 import { ethers } from 'ethers';
 import { beforeAll, describe, expect, it, vi } from 'vitest';
 

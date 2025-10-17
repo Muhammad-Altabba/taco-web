@@ -23,9 +23,9 @@
     ]
   },
   "dependencies": {
-    "@nucypher/shared": "workspace:*",
-    "@nucypher/taco": "workspace:*",
-    "@nucypher/taco-auth": "workspace:*",
+    "@nucypher-experimental/shared": "workspace:*",
+    "@nucypher-experimental/taco": "workspace:*",
+    "@nucypher-experimental/taco-auth": "workspace:*",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },

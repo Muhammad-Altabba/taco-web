@@ -12,8 +12,8 @@ import {
   VerifiedCapsuleFrag,
   VerifiedKeyFrag,
 } from '@nucypher/nucypher-core';
-import { Ursula } from '@nucypher/shared';
-import { fakeUrsulas, mockGetUrsulas } from '@nucypher/test-utils';
+import { Ursula } from '@nucypher-experimental/shared';
+import { fakeUrsulas, mockGetUrsulas } from '@nucypher-experimental/test-utils';
 import { expect, MockInstance, vi } from 'vitest';
 
 import { Alice, Bob, Cohort, toBytes } from '../src';

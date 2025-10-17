@@ -12,7 +12,7 @@
     "type-check": "tsc"
   },
   "dependencies": {
-    "@nucypher/pre": "workspace:*"
+    "@nucypher-experimental/pre": "workspace:*"
   },
   "devDependencies": {
     "copy-webpack-plugin": "^13.0.0",

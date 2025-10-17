@@ -7,7 +7,7 @@ import {
   Signer,
   VerifiedKeyFrag,
 } from '@nucypher/nucypher-core';
-import { toBytes } from '@nucypher/shared';
+import { toBytes } from '@nucypher-experimental/shared';
 
 import { PolicyMessageKit } from './kits';
 

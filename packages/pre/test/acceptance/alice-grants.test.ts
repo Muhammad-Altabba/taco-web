@@ -5,7 +5,12 @@ import {
   PublicKey,
   VerifiedKeyFrag,
 } from '@nucypher/nucypher-core';
-import { ChecksumAddress, domains, initialize, Ursula } from '@nucypher/shared';
+import {
+  ChecksumAddress,
+  domains,
+  initialize,
+  Ursula,
+} from '@nucypher-experimental/shared';
 import {
   bytesEqual,
   fakePorterUri,
@@ -14,7 +19,7 @@ import {
   fromBytes,
   mockGetUrsulas,
   mockRetrieveCFragsRequest,
-} from '@nucypher/test-utils';
+} from '@nucypher-experimental/test-utils';
 import { beforeEach, describe, expect, it } from 'vitest';
 
 import { EnactedPolicy, Enrico, toBytes } from '../../src';

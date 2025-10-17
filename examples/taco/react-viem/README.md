@@ -1,6 +1,6 @@
 # `react-viem-taco` integration example
 
-Shows how to integrate `@nucypher/taco` into a React application using viem.
+Shows how to integrate `@nucypher-experimental/taco` into a React application using viem.
 ## Usage
 
 ```bash

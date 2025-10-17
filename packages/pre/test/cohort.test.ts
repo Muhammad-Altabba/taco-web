@@ -1,5 +1,5 @@
-import { initialize } from '@nucypher/shared';
-import { fakeUrsulas } from '@nucypher/test-utils';
+import { initialize } from '@nucypher-experimental/shared';
+import { fakeUrsulas } from '@nucypher-experimental/test-utils';
 import { beforeAll, describe, expect, it } from 'vitest';
 
 import { Cohort } from '../src';

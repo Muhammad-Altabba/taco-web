@@ -15,7 +15,7 @@ import {
   toEpoch,
   Ursula,
   zip,
-} from '@nucypher/shared';
+} from '@nucypher-experimental/shared';
 import { ethers } from 'ethers';
 
 import { Alice, RemoteBob } from './characters';

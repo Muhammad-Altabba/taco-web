@@ -1,5 +1,5 @@
 {
-  "name": "@nucypher/test-utils",
+  "name": "@nucypher-experimental/test-utils",
   "version": "0.0.0",
   "private": true,
   "repository": {
@@ -30,9 +30,9 @@
     "lint:fix": "pnpm lint --fix"
   },
   "dependencies": {
+    "@nucypher-experimental/shared": "workspace:*",
+    "@nucypher-experimental/taco-auth": "workspace:*",
     "@nucypher/nucypher-core": "^0.14.5",
-    "@nucypher/shared": "workspace:*",
-    "@nucypher/taco-auth": "workspace:*",
     "axios": "^1.11.0",
     "ethers": "^5.8.0",
     "viem": "^2.0.0",

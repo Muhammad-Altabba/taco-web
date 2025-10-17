@@ -3,7 +3,7 @@ import {
   initialize,
   ThresholdMessageKit,
 } from '@nucypher/nucypher-core';
-import { SignerAccount, SignerLike } from '@nucypher/shared';
+import { SignerAccount, SignerLike } from '@nucypher-experimental/shared';
 import { ethers } from 'ethers';
 
 import { Condition } from '../conditions/condition.js';
@@ -26,7 +26,7 @@ import {
  *
  * @example Using with viem:
  * ```typescript
- * import { AccessClient, DOMAIN_NAMES } from '@nucypher/taco';
+ * import { AccessClient, DOMAIN_NAMES } from '@nucypher-experimental/taco';
  * import { createPublicClient, http } from 'viem';
  * import { polygonAmoy } from 'viem/chains';
  * import { privateKeyToAccount } from 'viem/accounts';
@@ -53,7 +53,7 @@ import {
  *
  * @example Using with ethers.js:
  * ```typescript
- * import { AccessClient, DOMAIN_NAMES } from '@nucypher/taco';
+ * import { AccessClient, DOMAIN_NAMES } from '@nucypher-experimental/taco';
  * import { ethers } from 'ethers';
  *
  * // Create ethers provider and signer

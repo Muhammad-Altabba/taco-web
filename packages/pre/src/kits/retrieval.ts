@@ -1,5 +1,5 @@
 import { VerifiedCapsuleFrag } from '@nucypher/nucypher-core';
-import { ChecksumAddress } from '@nucypher/shared';
+import { ChecksumAddress } from '@nucypher-experimental/shared';
 
 export class RetrievalResult {
   constructor(

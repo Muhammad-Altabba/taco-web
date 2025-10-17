@@ -1,7 +1,10 @@
 import { initialize } from '@nucypher/nucypher-core';
-import { objectEquals } from '@nucypher/shared';
-import { USER_ADDRESS_PARAM_DEFAULT } from '@nucypher/taco-auth';
-import { TEST_CHAIN_ID, TEST_CONTRACT_ADDR } from '@nucypher/test-utils';
+import { objectEquals } from '@nucypher-experimental/shared';
+import { USER_ADDRESS_PARAM_DEFAULT } from '@nucypher-experimental/taco-auth';
+import {
+  TEST_CHAIN_ID,
+  TEST_CONTRACT_ADDR,
+} from '@nucypher-experimental/test-utils';
 import { SemVer } from 'semver';
 import { beforeAll, describe, expect, it } from 'vitest';
 

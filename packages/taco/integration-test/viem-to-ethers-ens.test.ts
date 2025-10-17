@@ -1,6 +1,6 @@
 import { describe, expect, test, vi } from 'vitest';
 
-import { toEthersProvider } from '@nucypher/shared';
+import { toEthersProvider } from '@nucypher-experimental/shared';
 import { ethers } from 'ethers';
 import { createPublicClient, http } from 'viem';
 import { mainnet } from 'viem/chains';
