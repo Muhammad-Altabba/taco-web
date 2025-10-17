@@ -36,6 +36,24 @@ echo -e "${BLUE}Timestamp:${NC} $TIMESTAMP"
 echo -e "${BLUE}Build:${NC} $BUILD_NUMBER"
 echo ""
 
+# Base branch to compare with for changes detection
+BASE_BRANCH="main"
+
+echo -e "${BLUE}Comparing with:${NC} origin/$BASE_BRANCH"
+echo ""
+
+# Function to check if package has changes
+has_changes() {
+  local package_dir="${1%/}"
+  
+  # Check if there are any changes in this package directory
+  if git diff --quiet "origin/$BASE_BRANCH"...HEAD -- "$package_dir"; then
+    return 1  # No changes
+  else
+    return 0  # Has changes
+  fi
+}
+
 # Function to update package version
 update_package_version() {
   local package_dir="${1%/}"  # Remove trailing slash
@@ -55,22 +73,70 @@ update_package_version() {
   fi
 }
 
-# Update all publishable packages
-echo -e "${BLUE}Updating package versions...${NC}"
+# Update only packages with changes
+echo -e "${BLUE}Detecting changed packages...${NC}"
+CHANGED_PACKAGES=()
 for package_dir in packages/*/; do
+  package_dir="${package_dir%/}"
+  if has_changes "$package_dir"; then
+    PACKAGE_NAME=$(node -p "require('${package_dir}/package.json').name" 2>/dev/null || echo "unknown")
+    echo -e "  ${GREEN}✓${NC} $PACKAGE_NAME (has changes)"
+    CHANGED_PACKAGES+=("$package_dir")
+  else
+    PACKAGE_NAME=$(node -p "require('${package_dir}/package.json').name" 2>/dev/null || echo "unknown")
+    echo -e "  ${BLUE}○${NC} $PACKAGE_NAME (no changes, skipping)"
+  fi
+done
+
+echo ""
+
+if [ ${#CHANGED_PACKAGES[@]} -eq 0 ]; then
+  echo -e "${BLUE}No packages have changes. Nothing to publish.${NC}"
+  exit 0
+fi
+
+echo -e "${BLUE}Updating versions for ${#CHANGED_PACKAGES[@]} package(s)...${NC}"
+for package_dir in "${CHANGED_PACKAGES[@]}"; do
   update_package_version "$package_dir"
 done
 
 echo ""
-echo -e "${BLUE}Publishing packages with 'dev' tag...${NC}"
+echo -e "${BLUE}Publishing ${#CHANGED_PACKAGES[@]} package(s) with 'dev' tag...${NC}"
 
-# Publish all packages with dev tag
-pnpm -r --filter './packages/**' --no-bail publish --tag dev --access public --no-git-checks
+# Build filter for only changed packages
+PUBLISH_FILTERS=""
+for package_dir in "${CHANGED_PACKAGES[@]}"; do
+  PACKAGE_NAME=$(node -p "require('${package_dir}/package.json').name")
+  PUBLISH_FILTERS="$PUBLISH_FILTERS --filter '$PACKAGE_NAME'"
+done
+
+# Publish only changed packages with dev tag
+if [ -n "$PUBLISH_FILTERS" ]; then
+  eval "pnpm -r $PUBLISH_FILTERS --no-bail publish --tag dev --access public --no-git-checks"
+fi
 
 echo ""
 echo -e "${GREEN}✅ Dev packages published successfully!${NC}"
 echo ""
 echo -e "${BLUE}Install with:${NC}"
-echo "  pnpm add @nucypher/taco@dev"
-echo "  pnpm add @nucypher/shared@dev"
-echo "  pnpm add @nucypher/taco-auth@dev"
+for package_dir in "${CHANGED_PACKAGES[@]}"; do
+  PACKAGE_NAME=$(node -p "require('${package_dir}/package.json').name")
+  echo "  pnpm add ${PACKAGE_NAME}@dev"
+done
+
+# Create summary file for GitHub Actions (if running in CI)
+if [ -n "$GITHUB_OUTPUT" ]; then
+  echo "published_count=${#CHANGED_PACKAGES[@]}" >> "$GITHUB_OUTPUT"
+  
+  # Write package names to a temp file
+  PACKAGES_LIST=""
+  for package_dir in "${CHANGED_PACKAGES[@]}"; do
+    PACKAGE_NAME=$(node -p "require('${package_dir}/package.json').name")
+    if [ -z "$PACKAGES_LIST" ]; then
+      PACKAGES_LIST="$PACKAGE_NAME"
+    else
+      PACKAGES_LIST="$PACKAGES_LIST,$PACKAGE_NAME"
+    fi
+  done
+  echo "published_packages=$PACKAGES_LIST" >> "$GITHUB_OUTPUT"
+fi

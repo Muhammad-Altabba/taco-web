@@ -37,6 +37,7 @@ jobs:
         run: pnpm build
 
       - name: Publish dev packages
+        id: publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: pnpm run publish:dev
@@ -46,13 +47,15 @@ jobs:
         run: |
           echo "## 🚀 Dev Packages Published" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "Branch: \`${GITHUB_REF#refs/heads/}\`" >> $GITHUB_STEP_SUMMARY
-          echo "Build: \`${GITHUB_RUN_NUMBER}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Branch:** \`${GITHUB_REF#refs/heads/}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Build:** \`${GITHUB_RUN_NUMBER}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Packages:** ${{ steps.publish.outputs.published_count }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Installation" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo '```bash' >> $GITHUB_STEP_SUMMARY
-          echo 'pnpm add @nucypher/taco@dev' >> $GITHUB_STEP_SUMMARY
-          echo 'pnpm add @nucypher/shared@dev' >> $GITHUB_STEP_SUMMARY
-          echo 'pnpm add @nucypher/taco-auth@dev' >> $GITHUB_STEP_SUMMARY
+          IFS=',' read -ra PACKAGES <<< "${{ steps.publish.outputs.published_packages }}"
+          for pkg in "${PACKAGES[@]}"; do
+            echo "pnpm add ${pkg}@dev" >> $GITHUB_STEP_SUMMARY
+          done
           echo '```' >> $GITHUB_STEP_SUMMARY
