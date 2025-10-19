@@ -1,4 +1,4 @@
-import { ChainId } from '@nucypher/shared';
+import { ChainId } from '@nucypher-experimental/shared';
 import { TEST_CHAIN_ID } from '@nucypher/test-utils';
 import { describe, expect, it } from 'vitest';
 

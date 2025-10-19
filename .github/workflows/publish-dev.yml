@@ -69,15 +69,15 @@ jobs:
               fi
             done
           else
-            echo "- \`@nucypher/shared@dev\`" >> $GITHUB_STEP_SUMMARY
-            echo "- \`@nucypher/taco@dev\`" >> $GITHUB_STEP_SUMMARY
-            echo "- \`@nucypher/taco-auth@dev\`" >> $GITHUB_STEP_SUMMARY
+            echo "- \`@nucypher-experimental/shared@dev\`" >> $GITHUB_STEP_SUMMARY
+            echo "- \`@nucypher-experimental/taco@dev\`" >> $GITHUB_STEP_SUMMARY
+            echo "- \`@nucypher-experimental/taco-auth@dev\`" >> $GITHUB_STEP_SUMMARY
           fi
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Installation" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo '```bash' >> $GITHUB_STEP_SUMMARY
-          echo 'pnpm add @nucypher/shared@dev' >> $GITHUB_STEP_SUMMARY
-          echo 'pnpm add @nucypher/taco@dev' >> $GITHUB_STEP_SUMMARY
-          echo 'pnpm add @nucypher/taco-auth@dev' >> $GITHUB_STEP_SUMMARY
+          echo 'pnpm add @nucypher-experimental/shared@dev' >> $GITHUB_STEP_SUMMARY
+          echo 'pnpm add @nucypher-experimental/taco@dev' >> $GITHUB_STEP_SUMMARY
+          echo 'pnpm add @nucypher-experimental/taco-auth@dev' >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY

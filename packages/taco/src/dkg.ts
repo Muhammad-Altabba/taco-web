@@ -1,11 +1,11 @@
-import { DkgPublicKey } from '@nucypher/nucypher-core';
 import {
   ChecksumAddress,
   DkgCoordinatorAgent,
   DkgRitualState,
   Domain,
   fromHexString,
-} from '@nucypher/shared';
+} from '@nucypher-experimental/shared';
+import { DkgPublicKey } from '@nucypher/nucypher-core';
 import { BigNumberish, ethers } from 'ethers';
 
 export interface DkgRitualJSON {

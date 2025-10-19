@@ -115,6 +115,6 @@ fi
 
 echo ""
 echo -e "${BLUE}Install with:${NC}"
-echo "  pnpm add @nucypher/taco@dev"
-echo "  pnpm add @nucypher/shared@dev"
-echo "  pnpm add @nucypher/taco-auth@dev"
+echo "  pnpm add @nucypher-experimental/taco@dev"
+echo "  pnpm add @nucypher-experimental/shared@dev"
+echo "  pnpm add @nucypher-experimental/taco-auth@dev"

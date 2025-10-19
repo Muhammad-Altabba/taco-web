@@ -12,13 +12,13 @@
     "type-check": "tsc"
   },
   "dependencies": {
-    "@nucypher/pre": "workspace:*"
+    "@nucypher-experimental/pre": "workspace:*"
   },
   "devDependencies": {
-    "copy-webpack-plugin": "^13.0.0",
+    "copy-webpack-plugin": "^13.0.1",
     "esbuild-loader": "^2.21.0",
     "ethers": "^5.8.0",
-    "webpack": "^5.99.9",
+    "webpack": "^5.102.1",
     "webpack-cli": "^6.0.1",
     "webpack-dev-server": "^5.2.2"
   }

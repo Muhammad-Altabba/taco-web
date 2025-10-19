@@ -1,5 +1,8 @@
-import { ChainId } from '@nucypher/shared';
-import { AuthProvider, USER_ADDRESS_PARAM_DEFAULT } from '@nucypher/taco-auth';
+import { ChainId } from '@nucypher-experimental/shared';
+import {
+  AuthProvider,
+  USER_ADDRESS_PARAM_DEFAULT,
+} from '@nucypher-experimental/taco-auth';
 import { EIP4361, fakeAuthProviders } from '@nucypher/test-utils';
 import { beforeAll, describe, expect, it } from 'vitest';
 

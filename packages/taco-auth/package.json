@@ -1,5 +1,5 @@
 {
-  "name": "@nucypher/taco-auth",
+  "name": "@nucypher-experimental/taco-auth",
   "version": "0.3.0",
   "keywords": [
     "pre",
@@ -40,9 +40,9 @@
   },
   "dependencies": {
     "@ethersproject/abstract-signer": "^5.8.0",
-    "@nucypher/shared": "workspace:*",
+    "@nucypher-experimental/shared": "workspace:*",
     "siwe": "^3.0.0",
-    "zod": "^3.24.2"
+    "zod": "^3.25.76"
   },
   "devDependencies": {
     "@nucypher/test-utils": "workspace:*"

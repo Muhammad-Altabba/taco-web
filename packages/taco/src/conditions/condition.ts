@@ -1,4 +1,4 @@
-import { objectEquals } from '@nucypher/shared';
+import { objectEquals } from '@nucypher-experimental/shared';
 import { z } from 'zod';
 
 import { toJSON } from '../utils';

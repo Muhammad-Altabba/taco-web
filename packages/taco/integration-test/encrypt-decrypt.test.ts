@@ -1,10 +1,10 @@
 import { beforeAll, describe, expect, test } from 'vitest';
 
-import { fromBytes, toBytes } from '@nucypher/shared';
+import { fromBytes, toBytes } from '@nucypher-experimental/shared';
 import {
   EIP4361AuthProvider,
   USER_ADDRESS_PARAM_DEFAULT,
-} from '@nucypher/taco-auth';
+} from '@nucypher-experimental/taco-auth';
 import { ethers } from 'ethers';
 import {
   conditions,

@@ -1,4 +1,4 @@
-import { toBytes } from '@nucypher/shared';
+import { toBytes } from '@nucypher-experimental/shared';
 import { describe, expect, it } from 'vitest';
 
 import { fromJSON, toJSON } from '../src/utils';

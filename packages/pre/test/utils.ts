@@ -3,6 +3,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
+import { Ursula } from '@nucypher-experimental/shared';
 import {
   Capsule,
   EncryptedTreasureMap,
@@ -12,7 +13,6 @@ import {
   VerifiedCapsuleFrag,
   VerifiedKeyFrag,
 } from '@nucypher/nucypher-core';
-import { Ursula } from '@nucypher/shared';
 import { fakeUrsulas, mockGetUrsulas } from '@nucypher/test-utils';
 import { expect, MockInstance, vi } from 'vitest';
 

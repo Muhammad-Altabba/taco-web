@@ -1,5 +1,5 @@
 {
-  "name": "@nucypher/pre",
+  "name": "@nucypher-experimental/pre",
   "version": "0.0.0",
   "keywords": [
     "pre",
@@ -39,7 +39,7 @@
   },
   "dependencies": {
     "@nucypher/nucypher-core": "^0.14.5",
-    "@nucypher/shared": "workspace:*",
+    "@nucypher-experimental/shared": "workspace:*",
     "ethers": "^5.8.0"
   },
   "devDependencies": {

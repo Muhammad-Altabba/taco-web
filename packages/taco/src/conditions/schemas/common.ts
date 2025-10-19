@@ -1,5 +1,5 @@
 import { JSONPath } from '@astronautlabs/jsonpath';
-import { USER_ADDRESS_PARAM_DEFAULT } from '@nucypher/taco-auth';
+import { USER_ADDRESS_PARAM_DEFAULT } from '@nucypher-experimental/taco-auth';
 import { Primitive, z, ZodLiteral } from 'zod';
 
 import { CONTEXT_PARAM_PREFIX, CONTEXT_PARAM_REGEXP } from '../const';

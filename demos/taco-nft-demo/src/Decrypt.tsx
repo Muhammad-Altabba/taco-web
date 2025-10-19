@@ -1,4 +1,4 @@
-import { ThresholdMessageKit } from '@nucypher/taco';
+import { ThresholdMessageKit } from '@nucypher-experimental/taco';
 import React, { useState } from 'react';
 
 interface Props {

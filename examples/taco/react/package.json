@@ -23,16 +23,16 @@
     ]
   },
   "dependencies": {
-    "@nucypher/shared": "workspace:*",
-    "@nucypher/taco": "workspace:*",
-    "@nucypher/taco-auth": "workspace:*",
+    "@nucypher-experimental/shared": "workspace:*",
+    "@nucypher-experimental/taco": "workspace:*",
+    "@nucypher-experimental/taco-auth": "workspace:*",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },
   "devDependencies": {
-    "@types/node": "^24.3.0",
-    "@types/react": "^18.3.20",
-    "@types/react-dom": "^18.3.5",
+    "@types/node": "^24.8.1",
+    "@types/react": "^18.3.26",
+    "@types/react-dom": "^18.3.7",
     "react-scripts": "^5.0.1"
   },
   "peerDependencies": {

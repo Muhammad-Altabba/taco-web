@@ -1,12 +1,4 @@
 import {
-  Address,
-  EncryptedTreasureMap,
-  HRAC,
-  PublicKey,
-  TreasureMap,
-  VerifiedKeyFrag,
-} from '@nucypher/nucypher-core';
-import {
   ChecksumAddress,
   Domain,
   PreSubscriptionManagerAgent,
@@ -15,7 +7,15 @@ import {
   toEpoch,
   Ursula,
   zip,
-} from '@nucypher/shared';
+} from '@nucypher-experimental/shared';
+import {
+  Address,
+  EncryptedTreasureMap,
+  HRAC,
+  PublicKey,
+  TreasureMap,
+  VerifiedKeyFrag,
+} from '@nucypher/nucypher-core';
 import { ethers } from 'ethers';
 
 import { Alice, RemoteBob } from './characters';

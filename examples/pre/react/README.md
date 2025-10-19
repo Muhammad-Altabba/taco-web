@@ -1,6 +1,6 @@
 # `react-pre` integration example
 
-Shows how to integrate `@nucypher/pre` into a React application.
+Shows how to integrate `@nucypher-experimental/pre` into a React application.
 
 In order to load WASM dependencies of `@nucypher/*`, we override the
 `react-scripts` configuration with `craco`. For more details, see the

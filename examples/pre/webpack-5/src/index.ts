@@ -5,7 +5,7 @@ import {
   getPorterUri,
   initialize,
   SecretKey,
-} from '@nucypher/pre';
+} from '@nucypher-experimental/pre';
 import { ethers } from 'ethers';
 import { hexlify } from 'ethers/lib/utils';
 

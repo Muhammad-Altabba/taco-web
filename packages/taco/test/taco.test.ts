@@ -1,10 +1,10 @@
+import * as tacoAuth from '@nucypher-experimental/taco-auth';
+import { USER_ADDRESS_PARAM_DEFAULT } from '@nucypher-experimental/taco-auth';
 import {
   FerveoVariant,
   initialize,
   SessionStaticSecret,
 } from '@nucypher/nucypher-core';
-import * as tacoAuth from '@nucypher/taco-auth';
-import { USER_ADDRESS_PARAM_DEFAULT } from '@nucypher/taco-auth';
 import {
   aliceSecretKeyBytes,
   fakeDkgFlow,

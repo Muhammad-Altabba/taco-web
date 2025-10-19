@@ -1,6 +1,6 @@
 ---
-'@nucypher/shared': major
-'@nucypher/taco': major
+'@nucypher-experimental/shared': major
+'@nucypher-experimental/taco': major
 '@nucypher/test-utils': minor
 ---
 

@@ -1,4 +1,11 @@
 import {
+  DkgCoordinatorAgent,
+  DkgParticipant,
+  Domain,
+  PorterClient,
+  toBytes,
+} from '@nucypher-experimental/shared';
+import {
   AccessControlPolicy,
   combineDecryptionSharesSimple,
   DecryptionShareSimple,
@@ -12,13 +19,6 @@ import {
   ThresholdDecryptionRequest,
   ThresholdMessageKit,
 } from '@nucypher/nucypher-core';
-import {
-  DkgCoordinatorAgent,
-  DkgParticipant,
-  Domain,
-  PorterClient,
-  toBytes,
-} from '@nucypher/shared';
 import { ethers } from 'ethers';
 import { arrayify, keccak256 } from 'ethers/lib/utils';
 

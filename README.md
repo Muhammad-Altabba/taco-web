@@ -13,7 +13,7 @@ Full documentation can be found [here](https://docs.taco.build/).
 ## Installation
 
 ```
-pnpm add @nucypher/taco
+pnpm add @nucypher-experimental/taco
 ```
 
 ## Tutorial

@@ -1,4 +1,4 @@
-import { initialize } from '@nucypher/shared';
+import { initialize } from '@nucypher-experimental/shared';
 import { fakeUrsulas } from '@nucypher/test-utils';
 import { beforeAll, describe, expect, it } from 'vitest';
 
