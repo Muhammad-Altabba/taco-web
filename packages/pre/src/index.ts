@@ -1,4 +1,12 @@
 export {
+  domains,
+  fromBytes,
+  getPorterUri,
+  initialize,
+  toBytes,
+  toHexString,
+} from '@nucypher-experimental/shared';
+export {
   Ciphertext,
   EncryptedTreasureMap,
   HRAC,
@@ -8,14 +16,6 @@ export {
   Signer,
   TreasureMap,
 } from '@nucypher/nucypher-core';
-export {
-  domains,
-  fromBytes,
-  getPorterUri,
-  initialize,
-  toBytes,
-  toHexString,
-} from '@nucypher/shared';
 
 export { Alice, Bob, Enrico } from './characters';
 export { Cohort } from './cohort';

@@ -1,3 +1,4 @@
+import { ChecksumAddress } from '@nucypher-experimental/shared';
 import {
   Capsule,
   MessageKit,
@@ -5,7 +6,6 @@ import {
   RetrievalKit,
   SecretKey,
 } from '@nucypher/nucypher-core';
-import { ChecksumAddress } from '@nucypher/shared';
 
 import { RetrievalResult } from './retrieval';
 

@@ -1,17 +1,17 @@
 import {
-  AccessControlPolicy,
-  DkgPublicKey,
-  encryptForDkg,
-  ThresholdMessageKit,
-} from '@nucypher/nucypher-core';
-import {
   DkgCoordinatorAgent,
   Domain,
   fromHexString,
   getPorterUris,
   PorterClient,
   toBytes,
-} from '@nucypher/shared';
+} from '@nucypher-experimental/shared';
+import {
+  AccessControlPolicy,
+  DkgPublicKey,
+  encryptForDkg,
+  ThresholdMessageKit,
+} from '@nucypher/nucypher-core';
 import { ethers } from 'ethers';
 import { keccak256 } from 'ethers/lib/utils';
 

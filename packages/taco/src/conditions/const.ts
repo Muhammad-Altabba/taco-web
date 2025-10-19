@@ -1,4 +1,4 @@
-import { USER_ADDRESS_PARAM_DEFAULT } from '@nucypher/taco-auth';
+import { USER_ADDRESS_PARAM_DEFAULT } from '@nucypher-experimental/taco-auth';
 
 // Only allow alphanumeric characters and underscores
 const contextParamRegexString = ':[a-zA-Z_][a-zA-Z0-9_]*';

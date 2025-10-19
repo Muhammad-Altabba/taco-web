@@ -1,4 +1,3 @@
-import { ThresholdMessageKit } from '@nucypher/nucypher-core';
 import {
   AuthProvider,
   AuthSignature,
@@ -6,7 +5,8 @@ import {
   EIP4361AuthProvider,
   SingleSignOnEIP4361AuthProvider,
   USER_ADDRESS_PARAM_DEFAULT,
-} from '@nucypher/taco-auth';
+} from '@nucypher-experimental/taco-auth';
+import { ThresholdMessageKit } from '@nucypher/nucypher-core';
 
 import { CoreConditions, CoreContext } from '../../types';
 import { toJSON } from '../../utils';

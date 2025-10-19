@@ -10,11 +10,11 @@ import {
   initialize,
   toBytes,
   toHexString,
-} from '@nucypher/taco';
+} from '@nucypher-experimental/taco';
 import {
   EIP4361AuthProvider,
   USER_ADDRESS_PARAM_DEFAULT,
-} from '@nucypher/taco-auth';
+} from '@nucypher-experimental/taco-auth';
 import * as dotenv from 'dotenv';
 import { ethers } from 'ethers';
 

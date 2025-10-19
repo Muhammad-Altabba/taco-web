@@ -1,5 +1,5 @@
+import { fromHexString, initialize } from '@nucypher-experimental/shared';
 import { DkgPublicKey } from '@nucypher/nucypher-core';
-import { fromHexString, initialize } from '@nucypher/shared';
 import { beforeAll, describe, expect, it } from 'vitest';
 
 describe('Ritual', () => {

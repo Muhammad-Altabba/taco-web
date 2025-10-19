@@ -1,4 +1,3 @@
-import { initialize } from '@nucypher/nucypher-core';
 import {
   AuthProvider,
   AuthSignature,
@@ -7,7 +6,8 @@ import {
   EIP4361AuthProvider,
   SingleSignOnEIP4361AuthProvider,
   USER_ADDRESS_PARAM_DEFAULT,
-} from '@nucypher/taco-auth';
+} from '@nucypher-experimental/taco-auth';
+import { initialize } from '@nucypher/nucypher-core';
 import {
   EIP1271,
   EIP4361,

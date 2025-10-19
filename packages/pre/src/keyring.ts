@@ -1,3 +1,4 @@
+import { toBytes } from '@nucypher-experimental/shared';
 import {
   generateKFrags,
   MessageKit,
@@ -7,7 +8,6 @@ import {
   Signer,
   VerifiedKeyFrag,
 } from '@nucypher/nucypher-core';
-import { toBytes } from '@nucypher/shared';
 
 import { PolicyMessageKit } from './kits';
 

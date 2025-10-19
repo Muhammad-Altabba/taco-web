@@ -2,5 +2,5 @@
   "extends": ["../../typedoc.base.json"],
   "entryPoints": ["src/index.ts"],
   "tsconfig": "tsconfig.es.json",
-  "name": "@nucypher/taco"
+  "name": "@nucypher-experimental/taco"
 }
